@@ -1,0 +1,34 @@
+<html data-layout-decorate="~{layout}">
+<head>
+    <title>BLOG.IK.AM</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/earlyaccess/sawarabimincho.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../static/css/style.css" data-th-href="@{/css/style.css}"/>
+</head>
+<h1>📝&nbsp;<a data-th-href="@{/}">BLOG.IK.AM</a></h1>
+<p><a href="https://twitter.com/making">@making</a>'s memo</p>
+<body>
+<div data-layout-fragment="content">
+    <article>
+        <h2>
+            Entries
+            <span data-th-if="${query}">(Query: [[${query}]])</span>
+            <span data-th-if="${tag}">(Tag: [(${@tagsRenderer.render(tag)})])</span>
+            <span data-th-if="${categories}">(Categories: [(${@categoriesRenderer.render(categories)})])</span>
+        </h2>
+        <ul class="entries">
+            <li data-th-each="entry : ${entries.content}">
+                [(${@categoriesRenderer.render(entry.frontMatter.categories)})]
+                <a data-th-unless="${entry.premium}"
+                   data-th-href="@{'/entries/' + ${entry.entryId}}">[[${entry.frontMatter.title}]]</a>
+                <a data-th-if="${entry.premium}"
+                   data-th-href="@{'/p/entries/' + ${entry.entryId}}">🅿&nbsp;[[${entry.frontMatter.title}]]</a>
+                🗓&nbsp;Updated at <span>[[${entry.updated.date}]]</span>
+            </li>
+        </ul>
+    </article>
+</div>
+</body>
+</html>

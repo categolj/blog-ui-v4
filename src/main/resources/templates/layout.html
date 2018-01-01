@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>BLOG.IK.AM</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/earlyaccess/sawarabimincho.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../static/css/style.css" data-th-href="@{/css/style.css}"/>
+    <link rel="apple-touch-icon" sizes="57x57" data-th-href="@{/apple-icon-57x57.png}"/>
+    <link rel="apple-touch-icon" sizes="60x60" data-th-href="@{/apple-icon-60x60.png}"/>
+    <link rel="apple-touch-icon" sizes="72x72" data-th-href="@{/apple-icon-72x72.png}"/>
+    <link rel="apple-touch-icon" sizes="76x76" data-th-href="@{/apple-icon-76x76.png}"/>
+    <link rel="apple-touch-icon" sizes="114x114" data-th-href="@{/apple-icon-114x114.png}"/>
+    <link rel="apple-touch-icon" sizes="120x120" data-th-href="@{/apple-icon-120x120.png}"/>
+    <link rel="apple-touch-icon" sizes="144x144" data-th-href="@{/apple-icon-144x144.png}"/>
+    <link rel="apple-touch-icon" sizes="152x152" data-th-href="@{/apple-icon-152x152.png}"/>
+    <link rel="apple-touch-icon" sizes="180x180" data-th-href="@{/apple-icon-180x180.png}"/>
+    <link rel="icon" type="image/png" sizes="192x192" data-th-href="@{/android-icon-192x192.png}"/>
+    <link rel="icon" type="image/png" sizes="32x32" data-th-href="@{/favicon-32x32.png}"/>
+    <link rel="icon" type="image/png" sizes="96x96" data-th-href="@{/favicon-96x96.png}"/>
+    <link rel="icon" type="image/png" sizes="16x16" data-th-href="@{/favicon-16x16.png}"/>
+    <link rel="manifest" data-th-href="@{/manifest.json}"/>
+    <meta name="msapplication-TileColor" content="#ffffff"/>
+    <meta name="msapplication-TileImage" data-th-content="@{/ms-icon-144x144.png}"/>
+    <meta name="theme-color" content="#ffffff"/>
+</head>
+<h1>📝&nbsp;<a data-th-href="@{/}">BLOG.IK.AM</a></h1>
+<p><a href="https://twitter.com/making">@making</a>'s memo
+    (🗃&nbsp;<a data-th-href="@{/categories}">Categories</a>
+    🏷&nbsp;<a data-th-href="@{/tags}">Tags</a>)</p>
+<form method="get" data-th-action="@{/}">
+    <input class="input" name="q" type="search" placeholder="Search..." value=""/>
+</form>
+<body>
+<section id="main">
+    <div data-layout-fragment="content">Fake</div>
+</section>
+<section id="links">
+    <h5>Links</h5>
+    <ul>
+        <li>📖&nbsp;<a href="https://bit.ly/hajiboot2">はじめてのSpring Boot [改訂版] (拙著)</a></li>
+        <li>📖&nbsp;<a href="https://bit.ly/spring-book">Spring徹底入門 Spring FrameworkによるJavaアプリケーション開発 (共著)</a></li>
+        <li>📖&nbsp;<a href="https://bit.ly/perfect-javaee">パーフェクト Java EE (共著)</a></li>
+        <li><a href="https://github.com/making">Github</a></li>
+        <li><a href="https://twitter.com/making">Twitter</a></li>
+        <li><a href="http://www.slideshare.net/makingx">SlideShare</a></li>
+    </ul>
+</section>
+<footer>
+    <a data-th-href="@{/}">BLOG.IK.AM</a> — &copy; 2010-2017 <a href="https://twitter.com/making">Toshiaki Maki</a>
+</footer>
+</body>
+</html>

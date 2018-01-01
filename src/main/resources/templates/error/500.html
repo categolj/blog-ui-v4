@@ -1,0 +1,21 @@
+<html data-layout-decorate="~{layout}">
+<head>
+    <title>BLOG.IK.AM</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/earlyaccess/sawarabimincho.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../../static/css/style.css" data-th-href="@{/css/style.css}"/>
+</head>
+<h1>📝&nbsp;<a data-th-href="@{/}">BLOG.IK.AM</a></h1>
+<p><a href="https://twitter.com/making">@making</a>'s memo</p>
+<body>
+<div data-layout-fragment="content">
+    <article>
+        <h2>Ops!</h2>
+        <p>Unexpected error occurred ... !</p>
+        <table data-th-include="error/debug"></table>
+    </article>
+</div>
+</body>
+</html>

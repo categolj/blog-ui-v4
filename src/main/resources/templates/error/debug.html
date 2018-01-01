@@ -1,0 +1,24 @@
+<table data-thd-if="${@environment.acceptProfiles('default') || @environment.acceptProfiles('debug')}">
+    <tr>
+        <th>Status</th>
+        <td>[[${status}]]</td>
+    </tr>
+    <tr>
+        <th>Error</th>
+        <td>[[${error}]]</td>
+    </tr>
+    <tr data-th-if="${exception}">
+        <th>Exception</th>
+        <td>[[${exception}]]</td>
+    </tr>
+    <tr>
+        <th>Message</th>
+        <td>[[${message}]]</td>
+    </tr>
+    <tr data-th-if="${trace}">
+        <th>Trace</th>
+        <td>
+            <pre>[[${trace}]]</pre>
+        </td>
+    </tr>
+</table>

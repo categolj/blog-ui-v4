@@ -1,0 +1,90 @@
+body {
+    font-size: small;
+    font-family: "Sawarabi Mincho", Georgia, "Times New Roman", Times, serif;
+    margin: 20px;
+}
+
+a {
+    color: darkslategray;
+    text-decoration: none;
+}
+
+img {
+    height: auto;
+    max-width: 90%;
+}
+
+article {
+    border: darkgrey solid 1px;
+    border-radius: 10px;
+    padding: 0 10px 10px;
+}
+
+hr {
+    border: darkgrey dashed 1px;
+}
+
+footer {
+    margin: 10px;
+}
+
+blockquote {
+    color: #464646;
+    font-style: italic;
+    border: darkgrey dotted 1px;
+    border-radius: 5px;
+    margin: 5px 0;
+    padding-left: 10px;
+    max-width: 90%;
+}
+
+code {
+    background-color: aliceblue;
+    padding: 2px;
+}
+
+pre > code {
+    background-color: dimgray;
+}
+
+pre {
+    background-color: dimgray;
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    max-width: 90%;
+    white-space: pre-wrap;
+}
+
+td {
+    white-space: pre-wrap;
+}
+
+h2:before {
+    content: "📎 ";
+}
+
+h3:before {
+    content: "☕️ ";
+}
+
+h4:before {
+    content: "🍃 ";
+}
+
+h5:before {
+    content: "✈️️ ";
+}
+
+h6:before {
+    content: "☁️ ";
+}
+
+ul.entries {
+    padding: 0;
+}
+
+ul.entries > li {
+    list-style: none;
+}

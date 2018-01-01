@@ -1,0 +1,35 @@
+<html data-layout-decorate="~{layout}">
+<head>
+    <title>BLOG.IK.AM</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="https://fonts.googleapis.com/earlyaccess/sawarabimincho.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="../static/css/style.css" data-th-href="@{/css/style.css}"/>
+</head>
+<h1>📝&nbsp;<a data-th-href="@{/}">BLOG.IK.AM</a></h1>
+<p><a href="https://twitter.com/making">@making</a>'s memo</p>
+<body>
+<div data-layout-fragment="content">
+    <article>
+        <h2>
+            <a data-th-href="@{'/entries/' + ${entry.entryId}}">[[${entry.frontMatter.title}]]</a>
+        </h2>
+        <p class="categories">[(${@categoriesRenderer.render(entry.frontMatter.categories)})]</p>
+        <p class="tags">[(${@tagsRenderer.render(entry.frontMatter.tags)})]</p>
+        <p>
+            🗓&nbsp;Updated at [[${entry.updated.date}]] by [[${entry.updated.name}]]&nbsp;
+            🗓&nbsp;Created at [[${entry.created.date}]] by [[${entry.created.name}]]&nbsp;
+            {✒️️&nbsp;<a
+                data-th-href="${'https://github.com/making/blog.ik.am/edit/master/content/' + #numbers.formatInteger(entry.entryId.toString(), 5, 'NONE') + '.md'}">Edit</a>&nbsp;
+            ⏰&nbsp;<a
+                data-th-href="${'https://github.com/making/blog.ik.am/commits/master/content/' + #numbers.formatInteger(entry.entryId.toString(), 5, 'NONE') + '.md'}">History</a>}
+        </p>
+        <hr>
+        <div>
+            <p>[(${@marked.marked(entry.content)})]</p>
+        </div>
+    </article>
+</div>
+</body>
+</html>
