@@ -1,0 +1,82 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: blog-ui-beta-service
+  namespace: blog
+  labels:
+    app: blog-ui-beta
+spec:
+  selector:
+    app: blog-ui-beta
+  ports:
+  - protocol: TCP
+    port: 8080
+    nodePort: 30086
+  type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: blog-ui-beta
+  namespace: blog
+  labels:
+    app: blog-ui-beta
+spec:
+  replicas: 2
+  revisionHistoryLimit: 4
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: blog-ui-beta
+      annotations:
+        kubernetes.io/change-cause: "FIXME"
+    spec:
+      containers:
+      - name: blog-ui-beta
+        image: making/blog-ui:4.0.0-SNAPSHOT
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SERVER_PORT
+          value: "8080"
+        - name: SPRING_PROFILES_ACTIVE
+          value: kubernetes
+        - name: _JAVA_OPTIONS
+          value: "-Xmx285M -Xss1M -XX:MaxMetaspaceSize=113M -XX:ReservedCodeCacheSize=32M -XX:CompressedClassSpaceSize=20M -XX:MaxDirectMemorySize=32M -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap -XX:MaxRAMFraction=1 -Duser.timezone=Asia/Tokyo -Duser.language=ja -Duser.country=JP -Dinfo.docker.digest=INFO_DOCKER_DIGEST"
+        - name: SECURITY_USER_NAME
+          valueFrom:
+            secretKeyRef:
+              name: blog-config-secret
+              key: ops-username
+        - name: SECURITY_USER_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: blog-config-secret
+              key: ops-password
+        resources:
+          limits:
+            memory: "512Mi"
+          requests:
+            memory: "512Mi"
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 15
+          timeoutSeconds: 3
+          periodSeconds: 10
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 180
+          timeoutSeconds: 3
+          periodSeconds: 10
+          failureThreshold: 3
