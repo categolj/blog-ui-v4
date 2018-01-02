@@ -1,13 +1,13 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: blog-ui-beta-service
+  name: blog-ui-service
   namespace: blog
   labels:
-    app: blog-ui-beta
+    app: blog-ui
 spec:
   selector:
-    app: blog-ui-beta
+    app: blog-ui
   ports:
   - protocol: TCP
     port: 8080
@@ -17,10 +17,10 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: blog-ui-beta
+  name: blog-ui
   namespace: blog
   labels:
-    app: blog-ui-beta
+    app: blog-ui
 spec:
   replicas: 2
   revisionHistoryLimit: 4
@@ -32,13 +32,13 @@ spec:
   template:
     metadata:
       labels:
-        app: blog-ui-beta
+        app: blog-ui
       annotations:
         kubernetes.io/change-cause: "FIXME"
     spec:
       containers:
-      - name: blog-ui-beta
-        image: making/blog-ui:4.0.0-SNAPSHOT
+      - name: blog-ui
+        image: making/blog-ui:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
