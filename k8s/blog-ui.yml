@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
       - name: blog-ui
-        image: making/blog-ui:latest
+        image: asia.gcr.io/fe-tmaki/blog-ui:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
