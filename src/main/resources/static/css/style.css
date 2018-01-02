@@ -44,7 +44,8 @@ blockquote {
 code {
     background-color: aliceblue;
     padding: 2px;
-    font-family: Monaco, monospace
+    font-family: Monaco, monospace;
+    font-style: normal;
 }
 
 pre > code {
@@ -60,6 +61,7 @@ pre {
     white-space: pre;
     word-wrap: normal;
     font-family: Monaco, monospace;
+    font-style: normal;
     -webkit-overflow-scrolling: touch;
     overflow-x: auto;
 }
