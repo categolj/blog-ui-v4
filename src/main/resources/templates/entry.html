@@ -3,6 +3,7 @@
     <title>BLOG.IK.AM - [[${entry.frontMatter.title}]]</title>
     <meta data-th-content="${entry.frontMatter.title}" name="twitter:description"/>
     <meta data-th-content="${'BLOG.IK.AM - ' + entry.frontMatter.title}" name="twitter:title"/>
+    <meta data-th-content="${'Author: ' + entry.created.name + ', Category: ' + entry.frontMatter.categories}" name="Description"/>
 </head>
 <body>
 <div data-layout-fragment="content">
