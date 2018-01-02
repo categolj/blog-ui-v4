@@ -20,7 +20,7 @@
                    data-th-href="@{'/entries/' + ${entry.entryId}}">[[${entry.frontMatter.title}]]</a>
                 <a data-th-if="${entry.premium}"
                    data-th-href="@{'/p/entries/' + ${entry.entryId}}">🅿&nbsp;[[${entry.frontMatter.title}]]</a>
-                🗓&nbsp;Updated at <span>[[${entry.updated.date}]]</span>
+                🗓&nbsp;<span class="visible-inline-on-wide">Updated at </span><span>[[${entry.updated.date}]]</span>
             </li>
         </ul>
     </article>
