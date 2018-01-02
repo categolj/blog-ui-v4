@@ -11,7 +11,7 @@ spec:
   ports:
   - protocol: TCP
     port: 8080
-    nodePort: 30086
+    nodePort: 30085
   type: NodePort
 ---
 apiVersion: extensions/v1beta1
