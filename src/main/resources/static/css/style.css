@@ -1,7 +1,7 @@
 body {
     font-size: small;
     font-family: "Sawarabi Mincho", Georgia, "Times New Roman", Times, serif;
-    margin: 20px;
+    margin: 2px;
 }
 
 a {
@@ -10,14 +10,17 @@ a {
 }
 
 img {
-    height: auto;
-    max-width: 90%;
+    max-width: 100%;
 }
 
 article {
     border: darkgrey solid 1px;
     border-radius: 10px;
-    padding: 0 10px 10px;
+    padding: 0 5px 5px;
+    word-wrap: normal;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
+    margin: 0;
 }
 
 hr {
@@ -25,7 +28,7 @@ hr {
 }
 
 footer {
-    margin: 10px;
+    margin: 4px;
 }
 
 blockquote {
@@ -41,6 +44,7 @@ blockquote {
 code {
     background-color: aliceblue;
     padding: 2px;
+    font-family: Monaco, monospace
 }
 
 pre > code {
@@ -53,8 +57,11 @@ pre {
     padding: 5px;
     border-radius: 5px;
     margin-bottom: 10px;
-    max-width: 90%;
-    white-space: pre-wrap;
+    white-space: pre;
+    word-wrap: normal;
+    font-family: Monaco, monospace;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: auto;
 }
 
 td {
@@ -82,9 +89,72 @@ h6:before {
 }
 
 ul.entries {
+    padding: 0 0 0 15px;
+}
+
+ul.tags > li, ul.categories > li {
+    list-style: none;
+}
+
+ul.tags, ul.categories {
     padding: 0;
 }
 
-ul.entries > li {
-    list-style: none;
+.invisible-inline-on-wide {
+    display: inline;
+}
+
+.invisible-block-on-wide {
+    display: inline;
+}
+
+.visible-inline-on-wide {
+    display: none;
+}
+
+.visible-block-on-wide {
+    display: none;
+}
+
+/* only for wide screen */
+@media (min-width: 700px) {
+    body {
+        margin: 20px;
+    }
+
+    article {
+        padding: 0 10px 10px;
+    }
+
+    pre {
+        max-width: 90%;
+    }
+
+    img {
+        max-width: 90%;
+    }
+
+    ul.entries {
+        padding: 0;
+    }
+
+    ul.entries > li {
+        list-style: none;
+    }
+
+    .invisible-inline-on-wide {
+        display: none;
+    }
+
+    .invisible-block-on-wide {
+        display: none;
+    }
+
+    .visible-inline-on-wide {
+        display: inline;
+    }
+
+    .visible-block-on-wide {
+        display: block;
+    }
 }
