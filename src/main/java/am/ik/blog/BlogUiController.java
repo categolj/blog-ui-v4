@@ -93,7 +93,7 @@ public class BlogUiController {
 		private Boolean isCaution;
 
 		public ContentChecker(Entry entry) {
-			this.created = entry.getCreated().getDate();
+			this.created = entry.getUpdated().getDate();
 			this.isQuiteDanger = this.isQuiteDanger();
 			this.isDanger = this.isDanger();
 			this.isWarning = this.isWarning();
