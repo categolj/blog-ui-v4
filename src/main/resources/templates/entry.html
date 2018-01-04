@@ -3,7 +3,8 @@
     <title>BLOG.IK.AM - [[${entry.frontMatter.title}]]</title>
     <meta data-th-content="${entry.frontMatter.title}" name="twitter:description"/>
     <meta data-th-content="${'BLOG.IK.AM - ' + entry.frontMatter.title}" name="twitter:title"/>
-    <meta data-th-content="${'Author: ' + entry.created.name + ', Category: ' + entry.frontMatter.categories}" name="Description"/>
+    <meta data-th-content="${'Author: ' + entry.created.name + ', Category: ' + entry.frontMatter.categories}"
+          name="Description"/>
 </head>
 <body>
 <div data-layout-fragment="content">
@@ -14,7 +15,8 @@
         <p class="categories">[(${@categoriesRenderer.render(entry.frontMatter.categories)})]</p>
         <p class="tags">[(${@tagsRenderer.render(entry.frontMatter.tags)})]</p>
         <p>
-            🗓&nbsp;<span class="visible-inline-on-wide">Updated at </span>[[${entry.updated.date}]] by [[${entry.updated.name}]]&nbsp;
+            🗓&nbsp;<span class="visible-inline-on-wide">Updated at </span>[[${entry.updated.date}]] by
+            [[${entry.updated.name}]]&nbsp;
             <span class="visible-inline-on-wide">
             🗓&nbsp;Created at [[${entry.created.date}]] by [[${entry.created.name}]]&nbsp;
             {✒️️&nbsp;<a
@@ -24,10 +26,31 @@
             </span>
         </p>
         <hr>
-        <div>
+        <div data-th-if="${checker.caution}" class="caution">
+            ⚠️ [[#{checker.caution.label}]]: [[#{checker.caution.message}]]
+        </div>
+        <div data-th-if="${checker.warning}" class="warning">
+            🚨 [[#{checker.warning.label}]]: [[#{checker.warning.message}]]
+        </div>
+        <div data-th-if="${checker.danger}" class="danger">
+            ☠ [[#{checker.danger.label}]]: [[#{checker.danger.message}]]
+            <button class="btn" onclick="showContent(this)">[[#{checker.button}]]</button>
+            .
+        </div>
+        <div data-th-if="${checker.quiteDanger}" class="quite-danger">
+            💣 [[#{checker.quite-danger.label}]]: [[#{checker.quite-danger.message}]]
+            <button class="btn" onclick="showContent(this)">[[#{checker.button}]]</button>
+            .
+        </div>
+        <div data-th-classappend="${checker.quiteDanger ? 'opacity-3' : (checker.danger ? 'opacity-10' : '')}">
             <p>[(${@marked.marked(entry.content)})]</p>
         </div>
     </article>
+    <script>
+        function showContent(elm) {
+            elm.parentElement.nextElementSibling.style.opacity = 1.0;
+        }
+    </script>
 </div>
 </body>
 </html>

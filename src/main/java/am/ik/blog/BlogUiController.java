@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import am.ik.blog.entry.Categories;
-import am.ik.blog.entry.Category;
-import am.ik.blog.entry.Tag;
+import am.ik.blog.entry.*;
 import reactor.core.publisher.Mono;
 
 @Controller
@@ -62,6 +60,7 @@ public class BlogUiController {
 	public Mono<ModelAndView> byId(@PathVariable("entryId") Long entryId) {
 		return this.blogClient.findById(entryId) //
 				.map(entry -> new ModelAndView("entry") //
+						.addObject("checker", new ContentChecker(entry))
 						.addObject("entry", entry));
 	}
 
@@ -84,5 +83,52 @@ public class BlogUiController {
 		return this.blogClient.findTags() //
 				.map(tags -> new ModelAndView("tags") //
 						.addObject("tags", tags));
+	}
+
+	public static class ContentChecker {
+		private final EventTime created;
+		private Boolean isQuiteDanger;
+		private Boolean isDanger;
+		private Boolean isWarning;
+		private Boolean isCaution;
+
+		public ContentChecker(Entry entry) {
+			this.created = entry.getCreated().getDate();
+			this.isQuiteDanger = this.isQuiteDanger();
+			this.isDanger = this.isDanger();
+			this.isWarning = this.isWarning();
+			this.isCaution = this.isCaution();
+		}
+
+		public boolean isQuiteDanger() {
+			if (this.isQuiteDanger != null) {
+				return this.isQuiteDanger;
+			}
+			return this.created.isOverFiveYearsOld();
+		}
+
+		public boolean isDanger() {
+			if (this.isDanger != null) {
+				return this.isDanger;
+			}
+			return !this.isQuiteDanger() && this.created.isOverThreeYearsOld();
+		}
+
+		public boolean isWarning() {
+			if (this.isWarning != null) {
+				return this.isWarning;
+			}
+			return !this.isQuiteDanger() && !this.isDanger()
+					&& this.created.isOverOneYearOld();
+		}
+
+		public boolean isCaution() {
+			if (this.isCaution != null) {
+				return this.isCaution;
+			}
+			return !this.isQuiteDanger() && !this.isDanger() && !this.isWarning()
+					&& this.created.isOverHalfYearOld();
+		}
+
 	}
 }
