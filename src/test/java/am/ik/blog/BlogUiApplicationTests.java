@@ -147,8 +147,8 @@ public class BlogUiApplicationTests {
 				"    <a href=\"/entries/2\">\n" + //
 				"      Foo Bar\n" + //
 				"    </a>\n" + //
+				"    <br class=\"invisible-inline-on-wide\"/>\n"+ //
 				"    \n" + //
-				"                \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
@@ -179,8 +179,8 @@ public class BlogUiApplicationTests {
 				"    <a href=\"/entries/1\">\n" + //
 				"      Hello World!\n" + //
 				"    </a>\n" + //
+				"    <br class=\"invisible-inline-on-wide\"/>\n"+ //
 				"    \n" + //
-				"                \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
