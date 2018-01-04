@@ -262,7 +262,8 @@ public class BlogUiApplicationTests {
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
 				"    </span>\n" + //
-				"    2017-03-27T02:22:36+09:00 by Toshiaki Maki \n" + //
+				"    2017-03-27T02:22:36+09:00 by\n" + //
+				"            Toshiaki Maki \n"+ //
 				"            \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      \n" + //

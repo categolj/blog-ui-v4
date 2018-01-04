@@ -8,10 +8,10 @@
 <div data-layout-fragment="content">
     <article>
         <h2>
-            Entries
-            <span data-th-if="${query}">(Query: [[${query}]])</span>
-            <span data-th-if="${tag}">(Tag: [(${@tagsRenderer.render(tag)})])</span>
-            <span data-th-if="${categories}">(Categories: [(${@categoriesRenderer.render(categories)})])</span>
+            [[#{entries.label}]]
+            <span data-th-if="${query}">([[#{query.label}]]: [[${query}]])</span>
+            <span data-th-if="${tag}">([[#{tag.label}]]: [(${@tagsRenderer.render(tag)})])</span>
+            <span data-th-if="${categories}">([[#{category.label}]]: [(${@categoriesRenderer.render(categories)})])</span>
         </h2>
         <ul class="entries">
             <li data-th-each="entry : ${entries.content}">
@@ -21,7 +21,8 @@
                 <a data-th-if="${entry.premium}"
                    data-th-href="@{'/p/entries/' + ${entry.entryId}}">🅿&nbsp;[[${entry.frontMatter.title}]]</a>
                 <br class="invisible-inline-on-wide">
-                🗓&nbsp;<span class="visible-inline-on-wide">Updated at </span><span>[[${entry.updated.date}]]</span>
+                🗓&nbsp;<span
+                    class="visible-inline-on-wide">[[#{updated.label}]] </span><span>[[${entry.updated.date}]]</span>
             </li>
         </ul>
     </article>

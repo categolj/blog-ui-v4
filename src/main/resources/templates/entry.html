@@ -15,14 +15,14 @@
         <p class="categories">[(${@categoriesRenderer.render(entry.frontMatter.categories)})]</p>
         <p class="tags">[(${@tagsRenderer.render(entry.frontMatter.tags)})]</p>
         <p>
-            🗓&nbsp;<span class="visible-inline-on-wide">Updated at </span>[[${entry.updated.date}]] by
+            🗓&nbsp;<span class="visible-inline-on-wide">[[#{updated.label}]] </span>[[${entry.updated.date}]] by
             [[${entry.updated.name}]]&nbsp;
             <span class="visible-inline-on-wide">
-            🗓&nbsp;Created at [[${entry.created.date}]] by [[${entry.created.name}]]&nbsp;
+            🗓&nbsp;[[#{created.label}]] [[${entry.created.date}]] by [[${entry.created.name}]]&nbsp;
             {✒️️&nbsp;<a
-                    data-th-href="${'https://github.com/making/blog.ik.am/edit/master/content/' + #numbers.formatInteger(entry.entryId.toString(), 5, 'NONE') + '.md'}">Edit</a>&nbsp;
+                    data-th-href="${'https://github.com/making/blog.ik.am/edit/master/content/' + #numbers.formatInteger(entry.entryId.toString(), 5, 'NONE') + '.md'}">[[#{edit.label}]]</a>&nbsp;
             ⏰&nbsp;<a
-                    data-th-href="${'https://github.com/making/blog.ik.am/commits/master/content/' + #numbers.formatInteger(entry.entryId.toString(), 5, 'NONE') + '.md'}">History</a>}
+                    data-th-href="${'https://github.com/making/blog.ik.am/commits/master/content/' + #numbers.formatInteger(entry.entryId.toString(), 5, 'NONE') + '.md'}">[[#{history.label}]]</a>}
             </span>
         </p>
         <hr>

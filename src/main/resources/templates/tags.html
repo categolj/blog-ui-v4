@@ -1,12 +1,12 @@
 <html lang="ja" data-layout-decorate="~{layout}">
 <head>
-    <title>BLOG.IK.AM - Tags</title>
+    <title>BLOG.IK.AM - [[#{tags.label}]]</title>
     <meta content="BLOG.IK.AM - Tags" name="twitter:title"/>
 </head>
 <body>
 <div data-layout-fragment="content">
     <article>
-        <h2>Tags</h2>
+        <h2>[[#{tags.label}]]</h2>
         <ul class="tags">
             <li data-th-each="tag : ${tags}">[(${@tagsRenderer.render(tag)})]</li>
         </ul>
