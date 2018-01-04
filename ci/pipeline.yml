@@ -75,7 +75,7 @@ jobs:
         resource: repo-develop
         trigger: true
     - task: mvn-test
-      attempts: 10
+      attempts: 3
       privileged: true
       params:
         <<: *JAVA_OPS
@@ -292,7 +292,7 @@ jobs:
       passed:
       - merge-develop-to-master
   - task: mvn-test
-    attempts: 10
+    attempts: 3
     privileged: true
     params:
       <<: *JAVA_OPS
