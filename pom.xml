@@ -30,7 +30,7 @@
         <dependency>
             <groupId>am.ik.blog</groupId>
             <artifactId>blog-domain</artifactId>
-            <version>4.3.0</version>
+            <version>4.3.1</version>
         </dependency>
         <dependency>
             <groupId>am.ik.marked4j</groupId>
