@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import am.ik.blog.entry.Categories;
 import am.ik.blog.entry.Category;
@@ -20,16 +19,12 @@ public class CategoriesRenderer {
 		if (list == null || list.isEmpty()) {
 			return "";
 		}
-		ServletUriComponentsBuilder builder = ServletUriComponentsBuilder
-				.fromCurrentContextPath();
 		List<String> ret = new ArrayList<>(list.size());
 		List<String> buf = new ArrayList<>(list.size());
 		list.forEach(category -> {
 			buf.add(category);
-			builder.replacePath("/categories/{categories}/entries");
-			ret.add(format("<a href=\"%s\">%s</a>",
-					builder.buildAndExpand(buf.stream().collect(joining(","))),
-					category));
+			ret.add(format("<a href=\"/categories/%s/entries\">%s</a>",
+					buf.stream().collect(joining(",")), category));
 		});
 		return "\uD83D\uDDC3&nbsp;{" + ret.stream().collect(joining("/")) + "}";
 	}

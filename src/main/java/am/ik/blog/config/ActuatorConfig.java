@@ -1,46 +1,43 @@
 package am.ik.blog.config;
 
-import org.springframework.boot.actuate.autoconfigure.security.EndpointRequest;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 @Configuration
 @ConfigurationProperties("security")
 @Order(-5)
-public class ActuatorConfig extends WebSecurityConfigurerAdapter {
+public class ActuatorConfig {
 	private User user = new User();
 
-	@Override
-	protected void configure(HttpSecurity http) throws Exception {
-		http.requestMatcher(EndpointRequest.toAnyEndpoint()) //
-				.authorizeRequests() //
-				.requestMatchers(EndpointRequest.to("health", "info")).permitAll() //
-				.requestMatchers(EndpointRequest.toAnyEndpoint()).hasRole("ACTUATOR") //
-				.and() //
+	@Bean
+	public SecurityWebFilterChain springWebFilterChain(ServerHttpSecurity http)
+			throws Exception {
+		return http //
 				.httpBasic() //
 				.and() //
-				.sessionManagement()
-				.sessionCreationPolicy(SessionCreationPolicy.STATELESS) //
+				.authorizeExchange() //
+				.pathMatchers("/actuator/health", "/actuator/info").permitAll() //
+				.pathMatchers("/actuator/**").hasRole("ACTUATOR") //
+				.anyExchange().permitAll() //
 				.and() //
-				.csrf().disable();
+				.build();
 	}
 
-	@Override
-	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-		UserDetails details = org.springframework.security.core.userdetails.User
+	@Bean
+	public MapReactiveUserDetailsService reactiveUserDetailsService() {
+		UserDetails user = org.springframework.security.core.userdetails.User
 				.withDefaultPasswordEncoder() //
 				.username(this.user.name) //
 				.password(this.user.password) //
 				.roles("ACTUATOR") //
 				.build();
-		auth.inMemoryAuthentication() //
-				.withUser(details);
+		return new MapReactiveUserDetailsService(user);
 	}
 
 	public User getUser() {

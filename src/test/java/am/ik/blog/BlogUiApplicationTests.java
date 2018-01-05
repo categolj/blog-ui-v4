@@ -55,11 +55,11 @@ public class BlogUiApplicationTests {
 						"      \"content\": \"\",\n" + //
 						"      \"created\": {\n" + //
 						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"2017-11-13T03:24:42+09:00\"\n" + //
+						"        \"date\": \"9998-11-13T03:24:42+09:00\"\n" + //
 						"      },\n" + //
 						"      \"updated\": {\n" + //
 						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"2018-01-02T21:58:18+09:00\"\n" + //
+						"        \"date\": \"9999-01-02T21:58:18+09:00\"\n" + //
 						"      },\n" + //
 						"      \"frontMatter\": {\n" + //
 						"        \"title\": \"Foo Bar\",\n" + //
@@ -79,11 +79,11 @@ public class BlogUiApplicationTests {
 						"      \"content\": \"\",\n" + //
 						"      \"created\": {\n" + //
 						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"2017-12-24T18:59:40+09:00\"\n" + //
+						"        \"date\": \"9998-12-24T18:59:40+09:00\"\n" + //
 						"      },\n" + //
 						"      \"updated\": {\n" + //
 						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"2017-12-31T12:54:37+09:00\"\n" + //
+						"        \"date\": \"9998-12-31T12:54:37+09:00\"\n" + //
 						"      },\n" + //
 						"      \"frontMatter\": {\n" + //
 						"        \"title\": \"Hello World!\",\n" + //
@@ -122,24 +122,21 @@ public class BlogUiApplicationTests {
 						"  \"size\": 2,\n" + //
 						"  \"number\": 0\n" + //
 						"}"));
-		HtmlPage top = this.webClient.getPage("http://localhost:" + port + "");
+		HtmlPage top = this.webClient.getPage("http://localhost:" + port);
 		String xml = top.getBody().querySelector("ul.entries").asXml();
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"entries\">\n" + //
 				"  <li>\n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      \uD83D\uDDC3 {\n" + //
-				"      <a href=\"http://localhost:" + port
-				+ "/categories/hoge/entries\">\n" + //
+				"      <a href=\"/categories/hoge/entries\">\n" + //
 				"        hoge\n" + //
 				"      </a>\n" + //
 				"      /\n" + //
-				"      <a href=\"http://localhost:" + port
-				+ "/categories/hoge,foo/entries\">\n" + //
+				"      <a href=\"/categories/hoge,foo/entries\">\n" + //
 				"        foo\n" + //
 				"      </a>\n" + //
 				"      /\n" + //
-				"      <a href=\"http://localhost:" + port
-				+ "/categories/hoge,foo,bar/entries\">\n" + //
+				"      <a href=\"/categories/hoge,foo,bar/entries\">\n" + //
 				"        bar\n" + //
 				"      </a>\n" + //
 				"      }\n" + //
@@ -147,31 +144,28 @@ public class BlogUiApplicationTests {
 				"    <a href=\"/entries/2\">\n" + //
 				"      Foo Bar\n" + //
 				"    </a>\n" + //
-				"    <br class=\"invisible-inline-on-wide\"/>\n"+ //
+				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
 				"    </span>\n" + //
 				"    <span>\n" + //
-				"      2018-01-02T21:58:18+09:00\n" + //
+				"      9999-01-02T21:58:18+09:00\n" + //
 				"    </span>\n" + //
 				"  </li>\n" + //
 				"  <li>\n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      \uD83D\uDDC3 {\n" + //
-				"      <a href=\"http://localhost:" + port + "/categories/a/entries\">\n"
-				+ //
+				"      <a href=\"/categories/a/entries\">\n" + //
 				"        a\n" + //
 				"      </a>\n" + //
 				"      /\n" + //
-				"      <a href=\"http://localhost:" + port
-				+ "/categories/a,b/entries\">\n" + //
+				"      <a href=\"/categories/a,b/entries\">\n" + //
 				"        b\n" + //
 				"      </a>\n" + //
 				"      /\n" + //
-				"      <a href=\"http://localhost:" + port
-				+ "/categories/a,b,c/entries\">\n" + //
+				"      <a href=\"/categories/a,b,c/entries\">\n" + //
 				"        c\n" + //
 				"      </a>\n" + //
 				"      }\n" + //
@@ -179,14 +173,14 @@ public class BlogUiApplicationTests {
 				"    <a href=\"/entries/1\">\n" + //
 				"      Hello World!\n" + //
 				"    </a>\n" + //
-				"    <br class=\"invisible-inline-on-wide\"/>\n"+ //
+				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
 				"    </span>\n" + //
 				"    <span>\n" + //
-				"      2017-12-31T12:54:37+09:00\n" + //
+				"      9998-12-31T12:54:37+09:00\n" + //
 				"    </span>\n" + //
 				"  </li>\n" + //
 				"</ul>");
@@ -201,11 +195,11 @@ public class BlogUiApplicationTests {
 						"  \"content\": \"memo\\n\\n* hoge\\n* foo\\n* bar\",\n" + //
 						"  \"created\": {\n" + //
 						"    \"name\": \"Toshiaki Maki\",\n" + //
-						"    \"date\": \"2017-12-20T02:32:23+09:00\"\n" + //
+						"    \"date\": \"9998-12-20T02:32:23+09:00\"\n" + //
 						"  },\n" + //
 						"  \"updated\": {\n" + //
 						"    \"name\": \"Toshiaki Maki\",\n" + //
-						"    \"date\": \"2017-03-27T02:22:36+09:00\"\n" + //
+						"    \"date\": \"9998-03-27T02:22:36+09:00\"\n" + //
 						"  },\n" + //
 						"  \"frontMatter\": {\n" + //
 						"    \"title\": \"Hello World!\",\n" + //
@@ -231,28 +225,26 @@ public class BlogUiApplicationTests {
 				"  </h2>\n" + //
 				"  <p class=\"categories\">\n" + //
 				"    \uD83D\uDDC3 {\n" + //
-				"    <a href=\"http://localhost:" + port + "/categories/a/entries\">\n" + //
+				"    <a href=\"/categories/a/entries\">\n" + //
 				"      a\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port + "/categories/a,b/entries\">\n"
-				+ //
+				"    <a href=\"/categories/a,b/entries\">\n" + //
 				"      b\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port
-				+ "/categories/a,b,c/entries\">\n" + //
+				"    <a href=\"/categories/a,b,c/entries\">\n" + //
 				"      c\n" + //
 				"    </a>\n" + //
 				"    }\n" + //
 				"  </p>\n" + //
 				"  <p class=\"tags\">\n" + //
 				"    \uD83C\uDFF7 \n" + //
-				"    <a href=\"http://localhost:" + port + "/tags/Java/entries\">\n" + //
+				"    <a href=\"/tags/Java/entries\">\n" + //
 				"      Java\n" + //
 				"    </a>\n" + //
 				"     \uD83C\uDFF7 \n" + //
-				"    <a href=\"http://localhost:" + port + "/tags/Spring/entries\">\n" + //
+				"    <a href=\"/tags/Spring/entries\">\n" + //
 				"      Spring\n" + //
 				"    </a>\n" + //
 				"  </p>\n" + //
@@ -262,12 +254,12 @@ public class BlogUiApplicationTests {
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
 				"    </span>\n" + //
-				"    2017-03-27T02:22:36+09:00 by\n" + //
-				"            Toshiaki Maki \n"+ //
+				"    9998-03-27T02:22:36+09:00 by\n" + //
+				"            Toshiaki Maki \n" + //
 				"            \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      \n" + //
-				"            \uD83D\uDDD3 Created at 2017-12-20T02:32:23+09:00 by Toshiaki Maki \n"
+				"            \uD83D\uDDD3 Created at 9998-12-20T02:32:23+09:00 by Toshiaki Maki \n"
 				+ //
 				"            {✒️️ \n" + //
 				"      <a href=\"https://github.com/making/blog.ik.am/edit/master/content/00100.md\">\n"
@@ -319,48 +311,41 @@ public class BlogUiApplicationTests {
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"categories\">\n" + //
 				"  <li>\n" + //
 				"    \uD83D\uDDC3 {\n" + //
-				"    <a href=\"http://localhost:" + port + "/categories/a/entries\">\n" + //
+				"    <a href=\"/categories/a/entries\">\n" + //
 				"      a\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port + "/categories/a,b/entries\">\n"
-				+ //
+				"    <a href=\"/categories/a,b/entries\">\n" + //
 				"      b\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port
-				+ "/categories/a,b,c/entries\">\n" + //
+				"    <a href=\"/categories/a,b,c/entries\">\n" + //
 				"      c\n" + //
 				"    </a>\n" + //
 				"    }\n" + //
 				"  </li>\n" + //
 				"  <li>\n" + //
 				"    \uD83D\uDDC3 {\n" + //
-				"    <a href=\"http://localhost:" + port + "/categories/hoge/entries\">\n"
-				+ //
+				"    <a href=\"/categories/hoge/entries\">\n" + //
 				"      hoge\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port
-				+ "/categories/hoge,foo/entries\">\n" + //
+				"    <a href=\"/categories/hoge,foo/entries\">\n" + //
 				"      foo\n" + //
 				"    </a>\n" + //
 				"    }\n" + //
 				"  </li>\n" + //
 				"  <li>\n" + //
 				"    \uD83D\uDDC3 {\n" + //
-				"    <a href=\"http://localhost:" + port + "/categories/hoge/entries\">\n"
-				+ //
+				"    <a href=\"/categories/hoge/entries\">\n" + //
 				"      hoge\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port
-				+ "/categories/hoge,foo/entries\">\n" + //
+				"    <a href=\"/categories/hoge,foo/entries\">\n" + //
 				"      foo\n" + //
 				"    </a>\n" + //
 				"    /\n" + //
-				"    <a href=\"http://localhost:" + port
-				+ "/categories/hoge,foo,bar/entries\">\n" + //
+				"    <a href=\"/categories/hoge,foo,bar/entries\">\n" + //
 				"      bar\n" + //
 				"    </a>\n" + //
 				"    }\n" + //
@@ -378,19 +363,19 @@ public class BlogUiApplicationTests {
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"tags\">\n" + //
 				"  <li>\n" + //
 				"    \uD83C\uDFF7 \n" + //
-				"    <a href=\"http://localhost:" + port + "/tags/hoge/entries\">\n" + //
+				"    <a href=\"/tags/hoge/entries\">\n" + //
 				"      hoge\n" + //
 				"    </a>\n" + //
 				"  </li>\n" + //
 				"  <li>\n" + //
 				"    \uD83C\uDFF7 \n" + //
-				"    <a href=\"http://localhost:" + port + "/tags/foo/entries\">\n" + //
+				"    <a href=\"/tags/foo/entries\">\n" + //
 				"      foo\n" + //
 				"    </a>\n" + //
 				"  </li>\n" + //
 				"  <li>\n" + //
 				"    \uD83C\uDFF7 \n" + //
-				"    <a href=\"http://localhost:" + port + "/tags/bar/entries\">\n" + //
+				"    <a href=\"/tags/bar/entries\">\n" + //
 				"      bar\n" + //
 				"    </a>\n" + //
 				"  </li>\n" + //
