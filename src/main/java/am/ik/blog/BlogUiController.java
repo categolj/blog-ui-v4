@@ -9,8 +9,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.result.view.Rendering;
+import org.thymeleaf.spring5.context.webflux.ReactiveDataDriverContextVariable;
 
 import am.ik.blog.entry.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Controller
@@ -23,9 +25,9 @@ public class BlogUiController {
 
 	@GetMapping({ "/", "/entries" })
 	public Rendering home(@PageableDefault(size = 50) Pageable pageable) {
-		Mono<BlogEntries> entries = this.blogClient.findAll(pageable);
+		Flux<Entry> entries = this.blogClient.streamAll(pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries) //
+				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
 				.build();
 	}
 
@@ -34,7 +36,7 @@ public class BlogUiController {
 			@PageableDefault(size = 50) Pageable pageable) {
 		Mono<BlogEntries> entries = this.blogClient.findByQuery(query, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries) //
+				.modelAttribute("entries", entries.map(BlogEntries::getContent)) //
 				.modelAttribute("query", query) //
 				.build();
 	}
@@ -44,7 +46,7 @@ public class BlogUiController {
 			@PageableDefault(size = 100) Pageable pageable) {
 		Mono<BlogEntries> entries = this.blogClient.findByTag(tag, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries) //
+				.modelAttribute("entries", entries.map(BlogEntries::getContent)) //
 				.modelAttribute("tag", tag) //
 				.build();
 	}
@@ -55,7 +57,7 @@ public class BlogUiController {
 		Mono<BlogEntries> entries = this.blogClient.findByCategories(categories,
 				pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries) //
+				.modelAttribute("entries", entries.map(BlogEntries::getContent)) //
 				.modelAttribute("categories", new Categories(categories)) //
 				.build();
 	}

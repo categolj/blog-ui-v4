@@ -3,6 +3,8 @@ package am.ik.blog;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpHeaders.ACCEPT;
+import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON_VALUE;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,7 @@ import com.netflix.hystrix.HystrixObservableCommand.Setter;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
 
 import am.ik.blog.entry.*;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -57,6 +60,18 @@ public class BlogClient {
 				.setter(setter("findAll", 5_000)) //
 				.fallback(fallbackEntries()) //
 				.toMono();
+	}
+
+	public Flux<Entry> streamAll(Pageable pageable) {
+		Flux<Entry> entries = this.webClient.get()
+				.uri("api/entries?page={page}&size={size}&excludeContent=true",
+						pageable.getPageNumber(), pageable.getPageSize()) //
+				.header(ACCEPT, APPLICATION_STREAM_JSON_VALUE).retrieve()
+				.bodyToFlux(Entry.class);
+		return HystrixCommands.from(entries) //
+				.setter(setter("streamAll", 5_000)) //
+				.fallback(fallbackEntry().flux()) //
+				.toFlux();
 	}
 
 	public Mono<BlogEntries> findByQuery(String query, Pageable pageable) {

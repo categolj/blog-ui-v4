@@ -14,7 +14,7 @@
             <span data-th-if="${categories}">([[#{category.label}]]: [(${@categoriesRenderer.render(categories)})])</span>
         </h2>
         <ul class="entries">
-            <li data-th-each="entry : ${entries.content}">
+            <li data-th-each="entry : ${entries}">
                 <span class="visible-inline-on-wide">[(${@categoriesRenderer.render(entry.frontMatter.categories)})]</span>
                 <a data-th-unless="${entry.premium}"
                    data-th-href="@{'/entries/' + ${entry.entryId}}">[[${entry.frontMatter.title}]]</a>

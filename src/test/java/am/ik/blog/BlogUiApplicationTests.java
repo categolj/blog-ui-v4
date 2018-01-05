@@ -47,10 +47,8 @@ public class BlogUiApplicationTests {
 	@Test
 	public void entries() throws Exception {
 		this.server.enqueue(new MockResponse()
-				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-				.setBody("{\n" + //
-						"  \"content\": [\n" + //
-						"    {\n" + //
+				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_STREAM_JSON_VALUE)
+				.setBody("    {\n" + //
 						"      \"entryId\": 2,\n" + //
 						"      \"content\": \"\",\n" + //
 						"      \"created\": {\n" + //
@@ -73,7 +71,7 @@ public class BlogUiApplicationTests {
 						"          \"Spring Boot Actuator\"\n" + //
 						"        ]\n" + //
 						"      }\n" + //
-						"    },\n" + //
+						"    }\n" + //
 						"    {\n" + //
 						"      \"entryId\": 1,\n" + //
 						"      \"content\": \"\",\n" + //
@@ -97,31 +95,7 @@ public class BlogUiApplicationTests {
 						"          \"Spring\"\n" + //
 						"        ]\n" + //
 						"      }\n" + //
-						"    }\n" + //
-						"  ],\n" + //
-						"  \"pageable\": {\n" + //
-						"    \"sort\": {\n" + //
-						"      \"unsorted\": true,\n" + //
-						"      \"sorted\": false\n" + //
-						"    },\n" + //
-						"    \"pageSize\": 2,\n" + //
-						"    \"pageNumber\": 0,\n" + //
-						"    \"offset\": 0,\n" + //
-						"    \"unpaged\": false,\n" + //
-						"    \"paged\": true\n" + //
-						"  },\n" + //
-						"  \"totalPages\": 192,\n" + //
-						"  \"totalElements\": 383,\n" + //
-						"  \"last\": false,\n" + //
-						"  \"sort\": {\n" + //
-						"    \"unsorted\": true,\n" + //
-						"    \"sorted\": false\n" + //
-						"  },\n" + //
-						"  \"numberOfElements\": 2,\n" + //
-						"  \"first\": true,\n" + //
-						"  \"size\": 2,\n" + //
-						"  \"number\": 0\n" + //
-						"}"));
+						"    }\n"));
 		HtmlPage top = this.webClient.getPage("http://localhost:" + port);
 		String xml = top.getBody().querySelector("ul.entries").asXml();
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"entries\">\n" + //
