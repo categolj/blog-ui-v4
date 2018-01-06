@@ -48,6 +48,7 @@ public class UserAgentMetricsFilter implements WebFilter {
 	}
 
 	boolean isIgnored(String path) {
-		return path.endsWith(".png") || path.endsWith(".js") || path.endsWith(".css");
+		return path.startsWith("/actuator/") || path.endsWith(".png")
+				|| path.endsWith(".js") || path.endsWith(".css");
 	}
 }
