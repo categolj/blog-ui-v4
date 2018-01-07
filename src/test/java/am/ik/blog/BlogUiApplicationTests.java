@@ -119,6 +119,9 @@ public class BlogUiApplicationTests {
 				"      Foo Bar\n" + //
 				"    </a>\n" + //
 				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/2\">\n" + //
+				"      <img src=\"http://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/2\"/>\n" + //
+				"    </a>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
@@ -148,6 +151,9 @@ public class BlogUiApplicationTests {
 				"      Hello World!\n" + //
 				"    </a>\n" + //
 				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/1\">\n" + //
+				"      <img src=\"http://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/1\"/>\n" + //
+				"    </a>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
@@ -195,6 +201,9 @@ public class BlogUiApplicationTests {
 				"  <h2>\n" + //
 				"    <a href=\"/entries/100\">\n" + //
 				"      Hello World!\n" + //
+				"    </a>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/100\">\n" + //
+				"      <img src=\"http://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/100\"/>\n" + //
 				"    </a>\n" + //
 				"  </h2>\n" + //
 				"  <p class=\"categories\">\n" + //
