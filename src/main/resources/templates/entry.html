@@ -13,11 +13,11 @@
             <a data-th-href="@{'/entries/' + ${entry.entryId}}">[[${entry.frontMatter.title}]]</a>
             <a data-th-unless="${entry.premium}"
                data-th-href="${'http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/' + entry.entryId}">
-                <img data-th-src="${'http://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/' + entry.entryId}">
+                <img data-th-src="${'https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/' + entry.entryId}">
             </a>
             <a data-th-if="${entry.premium}"
                data-th-href="${'http://b.hatena.ne.jp/entry/https://blog.ik.am/p/entries/' + entry.entryId}">
-                <img data-th-src="${'http://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/' + entry.entryId}">
+                <img data-th-src="${'https://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/' + entry.entryId}">
             </a>
         </h2>
         <p class="categories">[(${@categoriesRenderer.render(entry.frontMatter.categories)})]</p>

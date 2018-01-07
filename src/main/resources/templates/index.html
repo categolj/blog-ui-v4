@@ -23,10 +23,10 @@
                 <br class="invisible-inline-on-wide">
                 <a data-th-unless="${entry.premium}"
                    data-th-href="${'http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/' + entry.entryId}"><img
-                        data-th-src="${'http://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/' + entry.entryId}"></a><a
+                        data-th-src="${'https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/' + entry.entryId}"></a><a
                     data-th-if="${entry.premium}"
                     data-th-href="${'http://b.hatena.ne.jp/entry/https://blog.ik.am/p/entries/' + entry.entryId}"><img
-                    data-th-src="${'http://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/' + entry.entryId}"></a>
+                    data-th-src="${'https://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/' + entry.entryId}"></a>
                 🗓&nbsp;<span
                     class="visible-inline-on-wide">[[#{updated.label}]] </span><span>[[${entry.updated.date}]]</span>
             </li>
