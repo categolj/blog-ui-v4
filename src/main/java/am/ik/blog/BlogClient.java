@@ -1,14 +1,13 @@
 package am.ik.blog;
 
-import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-import static org.springframework.http.HttpHeaders.ACCEPT;
-import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON_VALUE;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
+
+import am.ik.blog.entry.*;
+import com.netflix.hystrix.exception.HystrixBadRequestException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import org.springframework.cloud.netflix.hystrix.HystrixCommands;
 import org.springframework.core.ParameterizedTypeReference;
@@ -19,15 +18,11 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.netflix.hystrix.HystrixCommandGroupKey;
-import com.netflix.hystrix.HystrixCommandKey;
-import com.netflix.hystrix.HystrixCommandProperties;
-import com.netflix.hystrix.HystrixObservableCommand.Setter;
-import com.netflix.hystrix.exception.HystrixBadRequestException;
-
-import am.ik.blog.entry.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.http.HttpHeaders.ACCEPT;
+import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON_VALUE;
 
 @Component
 public class BlogClient {
@@ -44,7 +39,9 @@ public class BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(Entry.class);
 		return HystrixCommands.from(entry) //
-				.setter(setter("findById", 5_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findById") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntry()) //
 				.toMono();
 	}
@@ -57,7 +54,9 @@ public class BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.setter(setter("findAll", 5_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findAll") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntries()) //
 				.toMono();
 	}
@@ -69,7 +68,9 @@ public class BlogClient {
 				.header(ACCEPT, APPLICATION_STREAM_JSON_VALUE).retrieve()
 				.bodyToFlux(Entry.class);
 		return HystrixCommands.from(entries) //
-				.setter(setter("streamAll", 5_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("streamAll") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntry().flux()) //
 				.toFlux();
 	}
@@ -82,7 +83,9 @@ public class BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.setter(setter("findAll", 3_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findAll") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
 				.toMono();
 	}
@@ -97,7 +100,9 @@ public class BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.setter(setter("findByCategories", 3_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findByCategories") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
 				.toMono();
 	}
@@ -110,7 +115,9 @@ public class BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.setter(setter("findByTag", 3_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findByTag") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
 				.toMono();
 	}
@@ -126,7 +133,9 @@ public class BlogClient {
 						.map(Tag::new) //
 						.collect(toList()));
 		return HystrixCommands.from(tags) //
-				.setter(setter("findTags", 3_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findTags") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackTags()) //
 				.toMono();
 	}
@@ -144,20 +153,11 @@ public class BlogClient {
 								.collect(toList()))) //
 						.collect(toList()));
 		return HystrixCommands.from(categories) //
-				.setter(setter("findCategories", 3_000)) //
+				.groupName(BlogClient.class.getSimpleName()) //
+				.commandName("findCategories") //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackCategories()) //
 				.toMono();
-	}
-
-	private Setter setter(String commandName, int timeout) {
-		HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory
-				.asKey(BlogClient.class.getSimpleName());
-		HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey(commandName);
-		HystrixCommandProperties.Setter setter = HystrixCommandProperties.defaultSetter()
-				.withExecutionTimeoutInMilliseconds(timeout);
-		return Setter.withGroupKey(groupKey) //
-				.andCommandKey(commandKey) //
-				.andCommandPropertiesDefaults(setter);
 	}
 
 	private Function<ClientResponse, Mono<? extends Throwable>> ignoreHystrixOnClientError() {
