@@ -1,5 +1,6 @@
 package am.ik.blog.config;
 
+import org.springframework.boot.actuate.autoconfigure.security.reactive.EndpointRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -14,8 +15,8 @@ public class ActuatorConfig {
 				.httpBasic() //
 				.and() //
 				.authorizeExchange() //
-				.pathMatchers("/actuator/health", "/actuator/info").permitAll() //
-				.pathMatchers("/actuator/**").hasRole("ACTUATOR") //
+				.matchers(EndpointRequest.to("health", "info")).permitAll() //
+				.matchers(EndpointRequest.toAnyEndpoint()).hasRole("ACTUATOR") //
 				.anyExchange().permitAll() //
 				.and() //
 				.build();
