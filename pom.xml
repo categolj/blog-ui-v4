@@ -24,6 +24,7 @@
         <java.version>1.8</java.version>
         <dockerfile-maven.version>1.3.6</dockerfile-maven.version>
         <docker.org>making</docker.org>
+        <spring-cloud.version>Finchley.M8</spring-cloud.version>
     </properties>
 
     <dependencies>
@@ -115,7 +116,7 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
-                <version>Finchley.M8</version>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -150,6 +151,34 @@
                         <JAR_FILE>./target/${project.build.finalName}.jar</JAR_FILE>
                     </buildArgs>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>gen-build-info</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <echo message="" file="target/classes/application.properties" append="yes"/>
+                                <echo message="" file="target/classes/application.properties" append="yes"/>
+                                <echo message="info.maven.versions.spring-boot=${project.parent.version}${line.separator}"
+                                      file="target/classes/application.properties" append="yes"/>
+                                <echo message="info.maven.versions.spring-cloud=${spring-cloud.version}${line.separator}"
+                                      file="target/classes/application.properties" append="yes"/>
+                                <echo message="info.maven.versions.spring-framework=${spring.version}${line.separator}"
+                                      file="target/classes/application.properties" append="yes"/>
+                                <echo message="info.maven.versions.spring-security=${spring-security.version}${line.separator}"
+                                      file="target/classes/application.properties" append="yes"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
