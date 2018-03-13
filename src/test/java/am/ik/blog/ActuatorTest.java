@@ -115,8 +115,8 @@ public class ActuatorTest {
 				.exchange() //
 				.expectStatus().isOk().expectBody(String.class).consumeWith(n -> {
 					String body = n.getResponseBody();
-					assertThat(body).doesNotContain("/actuator");
-					assertThat(body).contains("/entries");
+					assertThat(body).doesNotContain("uri=\"/actuator");
+					assertThat(body).contains("uri=\"/entries");
 				});
 	}
 }
