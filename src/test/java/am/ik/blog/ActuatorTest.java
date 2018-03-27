@@ -119,4 +119,21 @@ public class ActuatorTest {
 					assertThat(body).contains("uri=\"/entries");
 				});
 	}
+
+	@Test
+	public void testHystrixMetrics() {
+		this.webClient.get() //
+				.uri("/entries") //
+				.exchange() //
+				.expectStatus().isOk();
+		this.webClient.get() //
+				.uri("/actuator/prometheus") //
+				.header("Authorization",
+						"Basic " + Base64Utils.encodeToString("test:pass".getBytes()))
+				.exchange() //
+				.expectStatus().isOk().expectBody(String.class).consumeWith(n -> {
+					String body = n.getResponseBody();
+					assertThat(body).contains("hystrix_execution_total");
+				});
+	}
 }

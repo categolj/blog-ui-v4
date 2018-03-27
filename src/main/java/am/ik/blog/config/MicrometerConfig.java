@@ -1,6 +1,5 @@
 package am.ik.blog.config;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.hystrix.HystrixMetricsBinder;
 import io.micrometer.core.instrument.config.MeterFilter;
 
@@ -11,8 +10,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class MicrometerConfig {
 
-	public MicrometerConfig(MeterRegistry registry) {
-		new HystrixMetricsBinder().bindTo(registry);
+	@Bean
+	public HystrixMetricsBinder hystrixMetricsBinder() {
+		return new HystrixMetricsBinder();
 	}
 
 	@Bean
