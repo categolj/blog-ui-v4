@@ -1,6 +1,7 @@
 package am.ik.blog;
 
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -37,6 +38,8 @@ public class BlogUiApplicationTests {
 	public void setup() throws Exception {
 		this.server.start(API_SERVER_PORT);
 		this.webClient = new WebClient();
+		WebClientOptions options = this.webClient.getOptions();
+		options.setThrowExceptionOnFailingStatusCode(false);
 	}
 
 	@After
@@ -347,6 +350,60 @@ public class BlogUiApplicationTests {
 				"    </a>\n" + //
 				"  </li>\n" + //
 				"</ul>");
+	}
+
+	@Test
+	public void notFoundError() throws Exception {
+		this.server.enqueue(new MockResponse().setResponseCode(404)
+				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.setBody("{\"message\":\"entry 100 is not found.\"}"));
+		HtmlPage top = this.webClient
+				.getPage("http://localhost:" + port + "/entries/100");
+		String xml = top.getBody().querySelector("article").asXml();
+		assertThat(normalize(xml)).isEqualTo("<article>\n" + //
+				"  <h2>\n" + //
+				"    404 Not Found\n" + //
+				"  </h2>\n" + //
+				"  <p>\n" + //
+				"    ○|￣|＿\n" + //
+				"  </p>\n" + //
+				"  <table>\n" + //
+				"    <tbody>\n" + //
+				"      <tr>\n" + //
+				"        <th>\n" + //
+				"          Status\n" + //
+				"        </th>\n" + //
+				"        <td>\n" + //
+				"          404\n" + //
+				"        </td>\n" + //
+				"      </tr>\n" + //
+				"      <tr>\n" + //
+				"        <th>\n" + //
+				"          Error\n" + //
+				"        </th>\n" + //
+				"        <td>\n" + //
+				"          Not Found\n" + //
+				"        </td>\n" + //
+				"      </tr>\n" + //
+				"      <tr>\n" + //
+				"        <th>\n" + //
+				"          Exception\n" + //
+				"        </th>\n" + //
+				"        <td>\n" + //
+				"          org.springframework.web.server.ResponseStatusException\n" + //
+				"        </td>\n" + //
+				"      </tr>\n" + //
+				"      <tr>\n" + //
+				"        <th>\n" + //
+				"          Message\n" + //
+				"        </th>\n" + //
+				"        <td/>\n" + //
+				"      </tr>\n" + //
+				"    </tbody>\n" + //
+				"  </table>\n" + //
+				"  <table>\n" + //
+				"  </table>\n" + //
+				"</article>");
 	}
 
 	static String normalize(String text) {

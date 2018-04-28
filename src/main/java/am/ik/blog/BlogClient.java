@@ -22,7 +22,6 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
-import static org.springframework.http.MediaType.APPLICATION_STREAM_JSON_VALUE;
 
 @Component
 public class BlogClient {
@@ -43,7 +42,8 @@ public class BlogClient {
 				.commandName("findById") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntry()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Mono<BlogEntries> findAll(Pageable pageable) {
@@ -58,7 +58,8 @@ public class BlogClient {
 				.commandName("findAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntries()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Flux<Entry> streamAll(Pageable pageable) {
@@ -72,7 +73,8 @@ public class BlogClient {
 				.commandName("streamAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntry().flux()) //
-				.toFlux();
+				.toFlux() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Mono<BlogEntries> findByQuery(String query, Pageable pageable) {
@@ -87,7 +89,8 @@ public class BlogClient {
 				.commandName("findAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Mono<BlogEntries> findByCategories(List<Category> categories,
@@ -104,7 +107,8 @@ public class BlogClient {
 				.commandName("findByCategories") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Mono<BlogEntries> findByTag(Tag tag, Pageable pageable) {
@@ -119,7 +123,8 @@ public class BlogClient {
 				.commandName("findByTag") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Mono<List<Tag>> findTags() {
@@ -137,7 +142,8 @@ public class BlogClient {
 				.commandName("findTags") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackTags()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	public Mono<List<Categories>> findCategories() {
@@ -157,7 +163,8 @@ public class BlogClient {
 				.commandName("findCategories") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackCategories()) //
-				.toMono();
+				.toMono() //
+				.transform(this::unwrapIgnoredException);
 	}
 
 	private Function<ClientResponse, Mono<? extends Throwable>> ignoreHystrixOnClientError() {
@@ -166,6 +173,14 @@ public class BlogClient {
 
 	private Mono<? extends Throwable> ignoredException(Throwable e) {
 		return Mono.error(new HystrixBadRequestException(e.getMessage(), e));
+	}
+
+	private <T> Mono<T> unwrapIgnoredException(Mono<T> m) {
+		return m.onErrorMap(HystrixBadRequestException.class, Throwable::getCause);
+	}
+
+	private <T> Flux<T> unwrapIgnoredException(Flux<T> f) {
+		return f.onErrorMap(HystrixBadRequestException.class, Throwable::getCause);
 	}
 
 	private Mono<Entry> fallbackEntry() {
