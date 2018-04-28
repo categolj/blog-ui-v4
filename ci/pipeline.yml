@@ -9,7 +9,7 @@ resource_types:
   type: docker-image
   source:
     repository: pivotalpa/maven-resource
-    tag: 1.3.4
+    tag: 1.3.5
 - name: kubernetes
   type: docker-image
   source:
@@ -44,9 +44,9 @@ resources:
   - name: docker
     type: docker-image
     source:
-      repository: asia.gcr.io/fe-tmaki/blog-ui
-      username: _json_key
-      password: ((gcr-key))
+      repository: ((harbor-hostname))/categolj/blog-ui
+      username: ((harbor-username))
+      password: ((harbor-password))
   - name: k8s-master
     type: kubernetes
     source:
@@ -101,6 +101,42 @@ jobs:
             rm -rf ~/.m2
             ln -fs $(pwd)/m2 ~/.m2
             mvn test
+      on_failure:
+        put: slack-alert
+        params:
+          <<: *SLACK_FAILURE
+- name: unit-test-develop-jdk-10
+  build_logs_to_retain: 5
+  plan:
+    - aggregate:
+      - get: repo
+        resource: repo-develop
+        # trigger: true
+    - task: mvn-test
+      privileged: true
+      params:
+        <<: *JAVA_OPS
+      config: &MVN_TEST_CONFIG
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: maven
+            tag: 3-jdk-10
+        inputs:
+        - name: repo
+        caches:
+        - path: repo/m2
+        run:
+          path: bash
+          args:
+          - -c
+          - |
+            set -e
+            cd repo
+            rm -rf ~/.m2
+            ln -fs $(pwd)/m2 ~/.m2
+            mvn -Djava.version=10 -Dmaven-surefire-plugin.version=2.21.0 test
       on_failure:
         put: slack-alert
         params:
