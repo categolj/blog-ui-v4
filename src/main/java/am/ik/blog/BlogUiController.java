@@ -73,10 +73,8 @@ public class BlogUiController {
 
 	@GetMapping("/p/entries/{entryId}")
 	public Rendering premiumById(@PathVariable("entryId") Long entryId) {
-		return Rendering.view("premium") //
-				.modelAttribute("entryId", entryId) //
+		return Rendering.view("redirect:/entries/{entryId}")
 				.build();
-
 	}
 
 	@GetMapping("/categories")
