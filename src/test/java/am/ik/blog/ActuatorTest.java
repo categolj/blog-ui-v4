@@ -94,6 +94,10 @@ public class ActuatorTest {
 				.exchange() //
 				.expectStatus().isOk();
 		this.webClient.get() //
+				.uri("/entries") //
+				.exchange() //
+				.expectStatus().isOk();
+		this.webClient.get() //
 				.uri("/actuator/prometheus") //
 				.header("Authorization",
 						"Basic " + Base64Utils.encodeToString("test:pass".getBytes()))
