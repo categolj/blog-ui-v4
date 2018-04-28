@@ -90,14 +90,6 @@ public class ActuatorTest {
 	@Test
 	public void testPrometheusFilter() {
 		this.webClient.get() //
-				.uri("/entries") //
-				.exchange() //
-				.expectStatus().isOk();
-		this.webClient.get() //
-				.uri("/entries") //
-				.exchange() //
-				.expectStatus().isOk();
-		this.webClient.get() //
 				.uri("/actuator/prometheus") //
 				.header("Authorization",
 						"Basic " + Base64Utils.encodeToString("test:pass".getBytes()))
@@ -120,7 +112,6 @@ public class ActuatorTest {
 				.expectStatus().isOk().expectBody(String.class).consumeWith(n -> {
 					String body = n.getResponseBody();
 					assertThat(body).doesNotContain("uri=\"/actuator");
-					assertThat(body).contains("uri=\"/entries");
 				});
 	}
 
