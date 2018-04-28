@@ -1,24 +1,25 @@
 package am.ik.blog;
 
-import static am.ik.blog.BlogUiApplicationTests.API_SERVER_PORT;
-import static org.assertj.core.api.Assertions.assertThat;
-
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
+import okio.Buffer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import static am.ik.blog.BlogUiApplicationTests.API_SERVER_PORT;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "blog.api.url=http://localhost:"
@@ -47,88 +48,42 @@ public class BlogUiApplicationTests {
 	@Test
 	public void entries() throws Exception {
 		this.server.enqueue(new MockResponse()
-				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_STREAM_JSON_VALUE)
-				.setBody("    {\n" + //
-						"      \"entryId\": 2,\n" + //
-						"      \"content\": \"\",\n" + //
-						"      \"created\": {\n" + //
-						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"9998-11-13T03:24:42+09:00\"\n" + //
-						"      },\n" + //
-						"      \"updated\": {\n" + //
-						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"9999-01-02T21:58:18+09:00\"\n" + //
-						"      },\n" + //
-						"      \"frontMatter\": {\n" + //
-						"        \"title\": \"Foo Bar\",\n" + //
-						"        \"categories\": [\n" + //
-						"          \"hoge\",\n" + //
-						"          \"foo\",\n" + //
-						"          \"bar\"\n" + //
-						"        ],\n" + //
-						"        \"tags\": [\n" + //
-						"          \"Spring Boot\",\n" + //
-						"          \"Spring Boot Actuator\"\n" + //
-						"        ]\n" + //
-						"      }\n" + //
-						"    }\n" + //
-						"    {\n" + //
-						"      \"entryId\": 1,\n" + //
-						"      \"content\": \"\",\n" + //
-						"      \"created\": {\n" + //
-						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"9998-12-24T18:59:40+09:00\"\n" + //
-						"      },\n" + //
-						"      \"updated\": {\n" + //
-						"        \"name\": \"Toshiaki Maki\",\n" + //
-						"        \"date\": \"9998-12-31T12:54:37+09:00\"\n" + //
-						"      },\n" + //
-						"      \"frontMatter\": {\n" + //
-						"        \"title\": \"Hello World!\",\n" + //
-						"        \"categories\": [\n" + //
-						"          \"a\",\n" + //
-						"          \"b\",\n" + //
-						"          \"c\"\n" + //
-						"        ],\n" + //
-						"        \"tags\": [\n" + //
-						"          \"Java\",\n" + //
-						"          \"Spring\"\n" + //
-						"        ]\n" + //
-						"      }\n" + //
-						"    }\n"));
+				.setHeader(HttpHeaders.CONTENT_TYPE, "application/stream+x-jackson-smile")
+				.setBody(new Buffer().readFrom(
+						new ClassPathResource("data/entries.smile").getInputStream())));
 		HtmlPage top = this.webClient.getPage("http://localhost:" + port);
 		String xml = top.getBody().querySelector("ul.entries").asXml();
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"entries\">\n" + //
 				"  <li>\n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      \uD83D\uDDC3 {\n" + //
-				"      <a href=\"/categories/hoge/entries\">\n" + //
-				"        hoge\n" + //
+				"      <a href=\"/categories/x/entries\">\n" + //
+				"        x\n" + //
 				"      </a>\n" + //
 				"      /\n" + //
-				"      <a href=\"/categories/hoge,foo/entries\">\n" + //
-				"        foo\n" + //
+				"      <a href=\"/categories/x,y/entries\">\n" + //
+				"        y\n" + //
 				"      </a>\n" + //
 				"      /\n" + //
-				"      <a href=\"/categories/hoge,foo,bar/entries\">\n" + //
-				"        bar\n" + //
+				"      <a href=\"/categories/x,y,z/entries\">\n" + //
+				"        z\n" + //
 				"      </a>\n" + //
 				"      }\n" + //
 				"    </span>\n" + //
-				"    <a href=\"/entries/2\">\n" + //
-				"      Foo Bar\n" + //
+				"    <a href=\"/entries/99999\">\n" + //
+				"      Hello World!!\n" + //
 				"    </a>\n" + //
 				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
-				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/2\">\n" + //
-				"      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/2\"/>\n" + //
-				"    </a>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/99999\">\n"
+				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/99999\"/>\n"
+				+ "    </a>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
 				"    </span>\n" + //
 				"    <span>\n" + //
-				"      9999-01-02T21:58:18+09:00\n" + //
+				"      2017-04-01T02:00+09:00\n" + //
 				"    </span>\n" + //
 				"  </li>\n" + //
 				"  <li>\n" + //
@@ -147,20 +102,47 @@ public class BlogUiApplicationTests {
 				"      </a>\n" + //
 				"      }\n" + //
 				"    </span>\n" + //
-				"    <a href=\"/entries/1\">\n" + //
-				"      Hello World!\n" + //
+				"    <a href=\"/entries/99998\">\n" + //
+				"      Test!!\n" + //
 				"    </a>\n" + //
 				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
-				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/1\">\n" + //
-				"      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/1\"/>\n" + //
-				"    </a>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/99998\">\n"
+				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/99998\"/>\n"
+				+ "    </a>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
 				"    <span class=\"visible-inline-on-wide\">\n" + //
 				"      Updated at \n" + //
 				"    </span>\n" + //
 				"    <span>\n" + //
-				"      9998-12-31T12:54:37+09:00\n" + //
+				"      2017-04-01T00:00+09:00\n" + //
+				"    </span>\n" + //
+				"  </li>\n" + //
+				"  <li>\n" + //
+				"    <span class=\"visible-inline-on-wide\">\n" + //
+				"      \uD83D\uDDC3 {\n" + //
+				"      <a href=\"/categories/x/entries\">\n" + //
+				"        x\n" + //
+				"      </a>\n" + //
+				"      /\n" + //
+				"      <a href=\"/categories/x,y/entries\">\n" + //
+				"        y\n" + //
+				"      </a>\n" + //
+				"      }\n" + //
+				"    </span>\n" + //
+				"    <a href=\"/p/entries/99997\">\n" + //
+				"      \uD83C\uDD7F CategoLJ 4\n" + //
+				"    </a>\n" + //
+				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/p/entries/99997\">\n"
+				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/99997\"/>\n"
+				+ "    </a>\n" + //
+				"    \n" + //
+				"                \uD83D\uDDD3 \n" + //
+				"    <span class=\"visible-inline-on-wide\">\n" + //
+				"      Updated at \n" + //
+				"    </span>\n" + //
+				"    <span>\n" + "      2017-03-31T00:00+09:00\n" + //
 				"    </span>\n" + //
 				"  </li>\n" + //
 				"</ul>");
@@ -202,8 +184,10 @@ public class BlogUiApplicationTests {
 				"    <a href=\"/entries/100\">\n" + //
 				"      Hello World!\n" + //
 				"    </a>\n" + //
-				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/100\">\n" + //
-				"      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/100\"/>\n" + //
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/100\">\n"
+				+ //
+				"      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/100\"/>\n"
+				+ //
 				"    </a>\n" + //
 				"  </h2>\n" + //
 				"  <p class=\"categories\">\n" + //

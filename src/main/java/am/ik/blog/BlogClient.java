@@ -65,7 +65,7 @@ public class BlogClient {
 		Flux<Entry> entries = this.webClient.get()
 				.uri("api/entries?page={page}&size={size}&excludeContent=true",
 						pageable.getPageNumber(), pageable.getPageSize()) //
-				.header(ACCEPT, APPLICATION_STREAM_JSON_VALUE).retrieve()
+				.header(ACCEPT, "application/stream+x-jackson-smile").retrieve()
 				.bodyToFlux(Entry.class);
 		return HystrixCommands.from(entries) //
 				.groupName(BlogClient.class.getSimpleName()) //
