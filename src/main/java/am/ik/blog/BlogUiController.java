@@ -2,6 +2,11 @@ package am.ik.blog;
 
 import java.util.List;
 
+import am.ik.blog.entry.*;
+import org.thymeleaf.spring5.context.webflux.ReactiveDataDriverContextVariable;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
@@ -9,11 +14,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.result.view.Rendering;
-import org.thymeleaf.spring5.context.webflux.ReactiveDataDriverContextVariable;
-
-import am.ik.blog.entry.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @Controller
 public class BlogUiController {
@@ -34,9 +34,9 @@ public class BlogUiController {
 	@GetMapping(path = { "/", "/entries" }, params = "q")
 	public Rendering search(@RequestParam("q") String query,
 			@PageableDefault(size = 50) Pageable pageable) {
-		Mono<BlogEntries> entries = this.blogClient.findByQuery(query, pageable);
+		Flux<Entry> entries = this.blogClient.streamByQuery(query, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries.map(BlogEntries::getContent)) //
+				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
 				.modelAttribute("query", query) //
 				.build();
 	}
@@ -44,9 +44,9 @@ public class BlogUiController {
 	@GetMapping("/tags/{tag}/entries")
 	public Rendering byTag(@PathVariable("tag") Tag tag,
 			@PageableDefault(size = 100) Pageable pageable) {
-		Mono<BlogEntries> entries = this.blogClient.findByTag(tag, pageable);
+		Flux<Entry> entries = this.blogClient.streamByTag(tag, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries.map(BlogEntries::getContent)) //
+				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
 				.modelAttribute("tag", tag) //
 				.build();
 	}
@@ -54,10 +54,9 @@ public class BlogUiController {
 	@GetMapping("/categories/{categories}/entries")
 	public Rendering byCategories(@PathVariable("categories") List<Category> categories,
 			@PageableDefault(size = 100) Pageable pageable) {
-		Mono<BlogEntries> entries = this.blogClient.findByCategories(categories,
-				pageable);
+		Flux<Entry> entries = this.blogClient.streamByCategories(categories, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", entries.map(BlogEntries::getContent)) //
+				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
 				.modelAttribute("categories", new Categories(categories)) //
 				.build();
 	}
@@ -73,23 +72,23 @@ public class BlogUiController {
 
 	@GetMapping("/p/entries/{entryId}")
 	public Rendering premiumById(@PathVariable("entryId") Long entryId) {
-		return Rendering.view("redirect:/entries/{entryId}")
-				.build();
+		return Rendering.view("redirect:/entries/{entryId}").build();
 	}
 
 	@GetMapping("/categories")
 	public Rendering categories() {
-		Mono<List<Categories>> categories = this.blogClient.findCategories();
+		Flux<Categories> categories = this.blogClient.streamCategories();
 		return Rendering.view("categories") //
-				.modelAttribute("categories", categories) //
+				.modelAttribute("categories",
+						new ReactiveDataDriverContextVariable(categories)) //
 				.build();
 	}
 
 	@GetMapping("/tags")
 	public Rendering tags() {
-		Mono<List<Tag>> tags = this.blogClient.findTags();
+		Flux<Tag> tags = this.blogClient.streamTags();
 		return Rendering.view("tags") //
-				.modelAttribute("tags", tags) //
+				.modelAttribute("tags", new ReactiveDataDriverContextVariable(tags)) //
 				.build();
 	}
 
