@@ -17,7 +17,9 @@ public interface BlogClient {
 
 	Mono<BlogEntries> findAll(Pageable pageable);
 
-	Flux<Entry> streamAll(Pageable pageable);
+	default Flux<Entry> streamAll(Pageable pageable) {
+		return this.findAll(pageable).flatMapMany(x -> Flux.fromIterable(x.getContent()));
+	}
 
 	Mono<BlogEntries> findByQuery(String query, Pageable pageable);
 
@@ -42,5 +44,13 @@ public interface BlogClient {
 
 	Mono<List<Tag>> findTags();
 
+	default Flux<Tag> streamTags() {
+		return this.findTags().flatMapMany(Flux::fromIterable);
+	}
+
 	Mono<List<Categories>> findCategories();
+
+	default Flux<Categories> streamCategories() {
+		return this.findCategories().flatMapMany(Flux::fromIterable);
+	}
 }

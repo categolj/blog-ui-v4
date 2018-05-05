@@ -34,6 +34,7 @@ public class BlogWebClient implements BlogClient {
 		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
 	}
 
+	@Override
 	public Mono<Entry> findById(Long entryId) {
 		Mono<Entry> entry = this.webClient.get() //
 				.uri("api/entries/{entryId}?excludeContent=false", entryId) //
@@ -49,6 +50,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Mono<BlogEntries> findAll(Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
 				.uri("api/entries?page={page}&size={size}&excludeContent=true",
@@ -65,6 +67,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Flux<Entry> streamAll(Pageable pageable) {
 		Flux<Entry> entries = this.webClient.get()
 				.uri("api/entries?page={page}&size={size}&excludeContent=true",
@@ -80,6 +83,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Mono<BlogEntries> findByQuery(String query, Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
 				.uri("api/entries?q={q}&page={page}&size={size}&excludeContent=true",
@@ -96,6 +100,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Mono<BlogEntries> findByCategories(List<Category> categories,
 			Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
@@ -114,6 +119,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Mono<BlogEntries> findByTag(Tag tag, Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
 				.uri("api/tags/{tag}/entries?page={page}&size={size}&excludeContent=true",
@@ -130,6 +136,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Mono<List<Tag>> findTags() {
 		Mono<List<Tag>> tags = this.webClient.get() //
 				.uri("api/tags") //
@@ -149,6 +156,7 @@ public class BlogWebClient implements BlogClient {
 				.transform(this::unwrapIgnoredException);
 	}
 
+	@Override
 	public Mono<List<Categories>> findCategories() {
 		Mono<List<Categories>> categories = this.webClient.get() //
 				.uri("api/categories") //
