@@ -1,4 +1,4 @@
-package am.ik.blog.client;
+package am.ik.blog.http;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +12,7 @@ import com.netflix.hystrix.exception.HystrixBadRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cloud.netflix.hystrix.HystrixCommands;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
@@ -27,10 +28,11 @@ import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 
 @Component
-public class BlogWebClient implements BlogClient {
+@ConditionalOnProperty(name = "blog.client.type", havingValue = "http", matchIfMissing = true)
+public class BlogHttpClient implements BlogClient {
 	private final WebClient webClient;
 
-	public BlogWebClient(WebClient.Builder builder, BlogProperties props) {
+	public BlogHttpClient(WebClient.Builder builder, BlogProperties props) {
 		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
 	}
 
@@ -42,7 +44,7 @@ public class BlogWebClient implements BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(Entry.class);
 		return HystrixCommands.from(entry) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findById") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntry()) //
@@ -59,7 +61,7 @@ public class BlogWebClient implements BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntries()) //
@@ -75,7 +77,7 @@ public class BlogWebClient implements BlogClient {
 				.header(ACCEPT, "application/stream+x-jackson-smile").retrieve()
 				.bodyToFlux(Entry.class);
 		return HystrixCommands.from(entries) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("streamAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
 				.fallback(fallbackEntry().flux()) //
@@ -92,7 +94,7 @@ public class BlogWebClient implements BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
@@ -111,7 +113,7 @@ public class BlogWebClient implements BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findByCategories") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
@@ -128,7 +130,7 @@ public class BlogWebClient implements BlogClient {
 				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
 				.bodyToMono(BlogEntries.class);
 		return HystrixCommands.from(entries) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findByTag") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackEntries()) //
@@ -148,7 +150,7 @@ public class BlogWebClient implements BlogClient {
 						.map(Tag::new) //
 						.collect(toList()));
 		return HystrixCommands.from(tags) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findTags") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackTags()) //
@@ -170,7 +172,7 @@ public class BlogWebClient implements BlogClient {
 								.collect(toList()))) //
 						.collect(toList()));
 		return HystrixCommands.from(categories) //
-				.groupName(BlogWebClient.class.getSimpleName()) //
+				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findCategories") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
 				.fallback(fallbackCategories()) //
