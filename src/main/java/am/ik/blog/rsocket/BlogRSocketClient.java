@@ -3,6 +3,8 @@ package am.ik.blog.rsocket;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -19,6 +21,8 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.Payload;
 import io.rsocket.RSocket;
 import io.rsocket.RSocketFactory;
+import io.rsocket.exceptions.ApplicationErrorException;
+import io.rsocket.exceptions.RSocketException;
 import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.util.DefaultPayload;
@@ -32,7 +36,9 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.NettyDataBufferFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -61,6 +67,7 @@ public class BlogRSocketClient implements BlogClient {
 		return this.rsocket()
 				.flatMap(rs -> rs
 						.requestResponse(DefaultPayload.create("", "/entries/" + entryId))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toEntryMono));
 	}
 
@@ -73,6 +80,7 @@ public class BlogRSocketClient implements BlogClient {
 		return this.rsocket()
 				.flatMapMany(rs -> rs
 						.requestStream(DefaultPayload.create(uri.getQuery(), "/entries"))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toEntryFlux));
 	}
 
@@ -86,6 +94,7 @@ public class BlogRSocketClient implements BlogClient {
 		return this.rsocket()
 				.flatMapMany(rs -> rs
 						.requestStream(DefaultPayload.create(uri.getQuery(), "/entries"))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toEntryFlux));
 	}
 
@@ -101,6 +110,7 @@ public class BlogRSocketClient implements BlogClient {
 								String.format("/categories/%s/entries",
 										categories.stream().map(Category::getValue)
 												.collect(Collectors.joining(",")))))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toEntryFlux));
 	}
 
@@ -114,6 +124,7 @@ public class BlogRSocketClient implements BlogClient {
 				.flatMapMany(rs -> rs
 						.requestStream(DefaultPayload.create(uri.getQuery(),
 								String.format("/tags/%s/entries", tag)))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toEntryFlux));
 	}
 
@@ -121,14 +132,17 @@ public class BlogRSocketClient implements BlogClient {
 	public Flux<Tag> streamTags() {
 		return this.rsocket()
 				.flatMapMany(rs -> rs.requestResponse(DefaultPayload.create("", "/tags"))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toTagsMono) //
 						.flatMapMany(Flux::fromIterable));
 	}
 
 	@Override
 	public Flux<Categories> streamCategories() {
-		return this.rsocket().flatMapMany(
-				rs -> rs.requestResponse(DefaultPayload.create("", "/categories"))
+		return this.rsocket()
+				.flatMapMany(rs -> rs
+						.requestResponse(DefaultPayload.create("", "/categories"))
+						.onErrorMap(RSocketException.class, this::convertException) //
 						.transform(this::toCategoriesMono) //
 						.flatMapMany(Flux::fromIterable));
 	}
@@ -172,6 +186,21 @@ public class BlogRSocketClient implements BlogClient {
 						.map(x -> dataBufferFactory.wrap(x)), type,
 						this.codec.singleMediaType(), Collections.emptyMap()) //
 				.next();
+	}
+
+	private ResponseStatusException convertException(RSocketException e) {
+		String message = e.getMessage();
+		if (e instanceof ApplicationErrorException) {
+			Matcher matcher = Pattern
+					.compile("Response status (\\d+) with reason \"(.+)\"")
+					.matcher(message);
+			if (matcher.matches()) {
+				int statusCode = Integer.parseInt(matcher.group(1));
+				return new ResponseStatusException(HttpStatus.valueOf(statusCode),
+						matcher.group(2));
+			}
+		}
+		return new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, message, e);
 	}
 
 	// Old API
