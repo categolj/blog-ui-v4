@@ -7,9 +7,11 @@ import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.reactive.function.server.RenderingResponse;
 import org.springframework.web.reactive.result.view.Rendering;
 
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.*;
@@ -17,6 +19,11 @@ import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.
 @ControllerAdvice
 public class HystrixExceptionHandler {
 	private final Logger log = LoggerFactory.getLogger(HystrixExceptionHandler.class);
+	private final Environment env;
+
+	public HystrixExceptionHandler(Environment env) {
+		this.env = env;
+	}
 
 	@ExceptionHandler(HystrixRuntimeException.class)
 	public Rendering hystrix(HystrixRuntimeException e) {
@@ -37,14 +44,19 @@ public class HystrixExceptionHandler {
 
 	private Rendering renderError(Exception e, HttpStatus status) {
 		Throwable cause = e.getCause();
-		StringWriter sw = new StringWriter();
-		e.printStackTrace(new PrintWriter(sw));
-		return Rendering.view("error/error") //
+		RenderingResponse.Builder builder = (RenderingResponse.Builder) Rendering
+				.view("error/error") //
 				.modelAttribute("status", status) //
-				.modelAttribute("error", status.getReasonPhrase()) //
-				.modelAttribute("exception", cause.getClass().getName()) //
-				.modelAttribute("message", cause.getMessage()) //
-				.modelAttribute("trace", sw.toString()) //
+				.modelAttribute("error", status.getReasonPhrase())
+				.modelAttribute("message", cause.getMessage());
+		if (env.acceptsProfiles("default", "debug")) {
+			StringWriter sw = new StringWriter();
+			e.printStackTrace(new PrintWriter(sw));
+			builder = builder //
+					.modelAttribute("exception", cause.getClass().getName()) //
+					.modelAttribute("trace", sw.toString());
+		}
+		return (Rendering) builder //
 				.status(status) //
 				.build();
 	}
