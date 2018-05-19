@@ -46,8 +46,8 @@ public class BlogHttpClient implements BlogClient {
 		return HystrixCommands.from(entry) //
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findById") //
-				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
-				.fallback(fallbackEntry()) //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)
+						.withExecutionIsolationSemaphoreMaxConcurrentRequests(20)) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -64,7 +64,6 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
-				.fallback(fallbackEntries()) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -79,8 +78,8 @@ public class BlogHttpClient implements BlogClient {
 		return HystrixCommands.from(entries) //
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("streamAll") //
-				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)) //
-				.fallback(fallbackEntry().flux()) //
+				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)
+						.withExecutionIsolationSemaphoreMaxConcurrentRequests(30)) //
 				.toFlux() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -97,7 +96,6 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
-				.fallback(fallbackEntries()) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -116,7 +114,6 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findByCategories") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
-				.fallback(fallbackEntries()) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -133,7 +130,6 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findByTag") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
-				.fallback(fallbackEntries()) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -153,7 +149,6 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findTags") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
-				.fallback(fallbackTags()) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -175,7 +170,6 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findCategories") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(3_000)) //
-				.fallback(fallbackCategories()) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
