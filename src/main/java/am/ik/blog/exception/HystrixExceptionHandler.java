@@ -31,7 +31,7 @@ public class HystrixExceptionHandler {
 		if (failureType == TIMEOUT) {
 			return this.renderError(e, HttpStatus.REQUEST_TIMEOUT);
 		}
-		return this.renderError(e, HttpStatus.NOT_ACCEPTABLE);
+		return this.renderError(e, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
 	private Rendering renderError(Exception e, HttpStatus status) {
