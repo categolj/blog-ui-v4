@@ -120,7 +120,8 @@ public class ActuatorTest {
 		this.webClient.get() //
 				.uri("/entries") //
 				.exchange() //
-				.expectStatus().isOk();
+				.expectBody(String.class)
+				.consumeWith(r -> assertThat(r.getResponseBody()).isNotEmpty());
 		this.webClient.get() //
 				.uri("/actuator/prometheus") //
 				.header("Authorization",
