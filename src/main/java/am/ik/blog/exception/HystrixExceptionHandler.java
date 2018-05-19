@@ -22,7 +22,8 @@ public class HystrixExceptionHandler {
 	public Rendering hystrix(HystrixRuntimeException e) {
 		Throwable cause = e.getCause();
 		HystrixRuntimeException.FailureType failureType = e.getFailureType();
-		log.warn("{}({}:{})", failureType, cause.getClass().getName(), e.getMessage());
+		log.warn("{}({}:{}\t{}:{})", failureType, e.getClass().getName(), e.getMessage(),
+				cause.getClass().getName(), cause.getMessage());
 		if (failureType == REJECTED_SEMAPHORE_EXECUTION
 				|| failureType == REJECTED_SEMAPHORE_FALLBACK
 				|| failureType == REJECTED_THREAD_EXECUTION) {
