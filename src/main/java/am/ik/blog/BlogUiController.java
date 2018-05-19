@@ -3,7 +3,6 @@ package am.ik.blog;
 import java.util.List;
 
 import am.ik.blog.entry.*;
-import org.thymeleaf.spring5.context.webflux.ReactiveDataDriverContextVariable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -27,7 +26,7 @@ public class BlogUiController {
 	public Rendering home(@PageableDefault(size = 50) Pageable pageable) {
 		Flux<Entry> entries = this.blogClient.streamAll(pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
+				.modelAttribute("entries", entries) //
 				.build();
 	}
 
@@ -36,7 +35,7 @@ public class BlogUiController {
 			@PageableDefault(size = 50) Pageable pageable) {
 		Flux<Entry> entries = this.blogClient.streamByQuery(query, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
+				.modelAttribute("entries", entries) //
 				.modelAttribute("query", query) //
 				.build();
 	}
@@ -46,7 +45,7 @@ public class BlogUiController {
 			@PageableDefault(size = 100) Pageable pageable) {
 		Flux<Entry> entries = this.blogClient.streamByTag(tag, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
+				.modelAttribute("entries", entries) //
 				.modelAttribute("tag", tag) //
 				.build();
 	}
@@ -56,7 +55,7 @@ public class BlogUiController {
 			@PageableDefault(size = 100) Pageable pageable) {
 		Flux<Entry> entries = this.blogClient.streamByCategories(categories, pageable);
 		return Rendering.view("index") //
-				.modelAttribute("entries", new ReactiveDataDriverContextVariable(entries)) //
+				.modelAttribute("entries", entries) //
 				.modelAttribute("categories", new Categories(categories)) //
 				.build();
 	}
@@ -79,8 +78,7 @@ public class BlogUiController {
 	public Rendering categories() {
 		Flux<Categories> categories = this.blogClient.streamCategories();
 		return Rendering.view("categories") //
-				.modelAttribute("categories",
-						new ReactiveDataDriverContextVariable(categories)) //
+				.modelAttribute("categories", categories) //
 				.build();
 	}
 
@@ -88,7 +86,7 @@ public class BlogUiController {
 	public Rendering tags() {
 		Flux<Tag> tags = this.blogClient.streamTags();
 		return Rendering.view("tags") //
-				.modelAttribute("tags", new ReactiveDataDriverContextVariable(tags)) //
+				.modelAttribute("tags", tags) //
 				.build();
 	}
 
