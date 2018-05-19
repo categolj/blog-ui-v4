@@ -47,7 +47,8 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("findById") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)
-						.withExecutionIsolationSemaphoreMaxConcurrentRequests(20)) //
+						.withExecutionIsolationSemaphoreMaxConcurrentRequests(20)
+						.withFallbackEnabled(false)) //
 				.toMono() //
 				.transform(this::unwrapIgnoredException);
 	}
@@ -79,7 +80,8 @@ public class BlogHttpClient implements BlogClient {
 				.groupName(BlogHttpClient.class.getSimpleName()) //
 				.commandName("streamAll") //
 				.commandProperties(p -> p.withExecutionTimeoutInMilliseconds(5_000)
-						.withExecutionIsolationSemaphoreMaxConcurrentRequests(30)) //
+						.withExecutionIsolationSemaphoreMaxConcurrentRequests(30)
+						.withFallbackEnabled(false)) //
 				.toFlux() //
 				.transform(this::unwrapIgnoredException);
 	}
