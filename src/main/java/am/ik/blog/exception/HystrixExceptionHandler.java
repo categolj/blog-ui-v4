@@ -26,12 +26,12 @@ public class HystrixExceptionHandler {
 		if (failureType == REJECTED_SEMAPHORE_EXECUTION
 				|| failureType == REJECTED_SEMAPHORE_FALLBACK
 				|| failureType == REJECTED_THREAD_EXECUTION) {
-			return this.renderError(e, HttpStatus.NOT_ACCEPTABLE);
+			return this.renderError(e, HttpStatus.TOO_MANY_REQUESTS);
 		}
 		if (failureType == TIMEOUT) {
 			return this.renderError(e, HttpStatus.REQUEST_TIMEOUT);
 		}
-		return this.renderError(e, HttpStatus.SERVICE_UNAVAILABLE);
+		return this.renderError(e, HttpStatus.NOT_ACCEPTABLE);
 	}
 
 	private Rendering renderError(Exception e, HttpStatus status) {
