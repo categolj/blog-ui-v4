@@ -11,7 +11,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.reactive.function.server.RenderingResponse;
 import org.springframework.web.reactive.result.view.Rendering;
 
 import static com.netflix.hystrix.exception.HystrixRuntimeException.FailureType.*;
@@ -44,8 +43,7 @@ public class HystrixExceptionHandler {
 
 	private Rendering renderError(Exception e, HttpStatus status) {
 		Throwable cause = e.getCause();
-		RenderingResponse.Builder builder = (RenderingResponse.Builder) Rendering
-				.view("error/error") //
+		Rendering.Builder builder = Rendering.view("error/error") //
 				.modelAttribute("status", status) //
 				.modelAttribute("error", status.getReasonPhrase())
 				.modelAttribute("message", cause.getMessage());
@@ -56,7 +54,7 @@ public class HystrixExceptionHandler {
 					.modelAttribute("exception", cause.getClass().getName()) //
 					.modelAttribute("trace", sw.toString());
 		}
-		return (Rendering) builder //
+		return builder //
 				.status(status) //
 				.build();
 	}
