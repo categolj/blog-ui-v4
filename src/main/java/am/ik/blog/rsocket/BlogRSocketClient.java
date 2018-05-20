@@ -16,6 +16,9 @@ import am.ik.blog.entry.Categories;
 import am.ik.blog.entry.Category;
 import am.ik.blog.entry.Entry;
 import am.ik.blog.entry.Tag;
+import brave.Span;
+import brave.Tracer;
+import brave.propagation.TraceContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.rsocket.Payload;
@@ -27,6 +30,8 @@ import io.rsocket.transport.ClientTransport;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.util.DefaultPayload;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -51,6 +56,12 @@ public class BlogRSocketClient implements BlogClient {
 	private RSocketCodec codec = RSocketCodec.SMILE;
 	private DataBufferFactory dataBufferFactory = new NettyDataBufferFactory(
 			PooledByteBufAllocator.DEFAULT);
+	private final Tracer tracer;
+	private static final Logger log = LoggerFactory.getLogger(BlogRSocketClient.class);
+
+	public BlogRSocketClient(Tracer tracer) {
+		this.tracer = tracer;
+	}
 
 	@PostConstruct
 	private void init() {
@@ -73,15 +84,26 @@ public class BlogRSocketClient implements BlogClient {
 
 	@Override
 	public Flux<Entry> streamAll(Pageable pageable) {
+		Span span = this.tracer.nextSpan().name("streamAll");
+		log.info("start {}", span);
+		TraceContext context = span.context();
 		UriComponents uri = UriComponentsBuilder.newInstance()
 				.queryParam("page", pageable.getPageNumber()) //
 				.queryParam("size", pageable.getPageSize()) //
+				.queryParam("X-B3-TraceId", context.traceIdString()) //
+				.queryParam("X-B3-SpanId", Long.toHexString(context.spanId())) //
+				.queryParam("X-B3-ParentSpanId", Long.toHexString(context.parentId())) //
+				.queryParam("X-B3-Sampled", context.sampled()) //
 				.build();
 		return this.rsocket()
 				.flatMapMany(rs -> rs
 						.requestStream(DefaultPayload.create(uri.getQuery(), "/entries"))
 						.onErrorMap(RSocketException.class, this::convertException) //
-						.transform(this::toEntryFlux));
+						.transform(this::toEntryFlux))
+				.doOnTerminate(() -> {
+					log.info("finish {}", span);
+					span.finish();
+				});
 	}
 
 	@Override
