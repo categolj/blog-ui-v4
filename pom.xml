@@ -25,7 +25,6 @@
         <dockerfile-maven.version>1.3.6</dockerfile-maven.version>
         <docker.org>making</docker.org>
         <spring-cloud.version>Finchley.BUILD-SNAPSHOT</spring-cloud.version>
-        <rsocket.version>0.10.0.BUILD-SNAPSHOT</rsocket.version>
     </properties>
 
     <dependencies>
@@ -83,16 +82,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-smile</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.rsocket</groupId>
-            <artifactId>rsocket-core</artifactId>
-            <version>${rsocket.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.rsocket</groupId>
-            <artifactId>rsocket-transport-netty</artifactId>
-            <version>${rsocket.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -195,14 +184,6 @@
     </build>
 
     <repositories>
-        <repository>
-            <id>jfrog</id>
-            <name>JFrog</name>
-            <url>https://oss.jfrog.org/libs-snapshot</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
         <repository>
             <id>spring-snapshots</id>
             <name>Spring Snapshots</name>
