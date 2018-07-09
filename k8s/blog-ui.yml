@@ -87,3 +87,13 @@ spec:
           timeoutSeconds: 3
           periodSeconds: 10
           failureThreshold: 3
+      affinity:
+         podAntiAffinity:
+           requiredDuringSchedulingIgnoredDuringExecution:
+             - labelSelector:
+                 matchExpressions:
+                   - key: "app"
+                     operator: In
+                     values:
+                     - blog-ui
+               topologyKey: "kubernetes.io/hostname"
