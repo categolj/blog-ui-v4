@@ -257,7 +257,11 @@ jobs:
         - |
           set -e
           DIGEST=`cat docker/digest`
-          sed "s/:latest/@${DIGEST}/g" repo/k8s/blog-ui.yml | sed "s/FIXME/Bump to ${DIGEST}/g" | sed "s/INFO_DOCKER_DIGEST/${DIGEST}/g" > updated/blog-ui.yml
+          sed "s/:latest/@${DIGEST}/g" repo/k8s/blog-ui.yml | \
+          sed "s/FIXME/Bump to ${DIGEST}/g" | \
+          sed "s/INFO_DOCKER_DIGEST/${DIGEST}/g" | \
+          sed "s/namespace: blog/namespace: blog-dev/g" | \
+          sed "s/3008/3058/g" > updated/blog-ui.yml
   - put: k8s-develop
     params:
       kubectl: apply -f updated/blog-ui.yml
