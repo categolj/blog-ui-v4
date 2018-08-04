@@ -24,4 +24,10 @@ public class BlogGoneController {
 	public String apiV1() {
 		return "RIP";
 	}
+
+	@GetMapping("/m/**")
+	@ResponseStatus(HttpStatus.GONE)
+	public String m() {
+		return "RIP";
+	}
 }
