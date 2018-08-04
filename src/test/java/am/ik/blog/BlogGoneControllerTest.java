@@ -44,4 +44,13 @@ public class BlogGoneControllerTest {
 				.expectStatus() //
 				.isEqualTo(HttpStatus.GONE);
 	}
+
+	@Test
+	public void m() throws Exception {
+		this.webTestClient.get() //
+				.uri("/m/entry/view/id/191") //
+				.exchange()//
+				.expectStatus() //
+				.isEqualTo(HttpStatus.GONE);
+	}
 }
