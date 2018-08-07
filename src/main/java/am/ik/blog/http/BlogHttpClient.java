@@ -43,6 +43,7 @@ public class BlogHttpClient implements BlogClient {
 			}
 			return true;
 		}) //
+                .timeout(Duration.ofSeconds(6))
 				.retryMax(props.getRetryMax()) //
 				.backoff(Backoff.exponential(props.getRetryFirstBackoff(),
 						Duration.ofSeconds(10), 2, false)) //
