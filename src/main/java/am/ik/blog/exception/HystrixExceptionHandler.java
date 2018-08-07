@@ -2,6 +2,7 @@ package am.ik.blog.exception;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Objects;
 
 import com.netflix.hystrix.exception.HystrixRuntimeException;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class HystrixExceptionHandler {
 		Rendering.Builder builder = Rendering.view("error/error") //
 				.modelAttribute("status", status) //
 				.modelAttribute("error", status.getReasonPhrase())
-				.modelAttribute("message", cause.getMessage());
+				.modelAttribute("message", Objects.toString(cause.getMessage(), ""));
 		if (env.acceptsProfiles("default", "debug")) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
