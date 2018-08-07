@@ -14,7 +14,8 @@ import org.springframework.util.Base64Utils;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
+		"blog.retry-first-backoff=1ms" })
 public class ActuatorTest {
 	@LocalServerPort
 	int port;
