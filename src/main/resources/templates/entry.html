@@ -51,7 +51,7 @@
             .
         </div>
         <div data-th-classappend="${checker.quiteDanger ? 'opacity-3' : (checker.danger ? 'opacity-10' : '')}">
-            <p>[(${@marked.marked(entry.content)})]</p>
+            <p>[(${@entryRenderer.render(entry)})]</p>
         </div>
     </article>
     <script>
