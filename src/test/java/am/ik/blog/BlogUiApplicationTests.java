@@ -1,5 +1,6 @@
 package am.ik.blog;
 
+import am.ik.blog.http.RxBlogHttpClient;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -16,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -25,19 +27,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		"blog.api.url=http://localhost:" + API_SERVER_PORT,
-		"blog.retry-first-backoff=1ms",
-		"blog.retry-max=1" })
+		"blog.retry-first-backoff=1ms", "blog.retry-max=1" })
 public class BlogUiApplicationTests {
 	static final int API_SERVER_PORT = 55321;
-	@Autowired
-	BlogClient blogClient;
 	@LocalServerPort
 	int port;
 	MockWebServer server = new MockWebServer();
 	WebClient webClient;
+	@Autowired
+	RxBlogHttpClient rxBlogHttpClient;
 
 	@Before
 	public void setup() throws Exception {
+		this.rxBlogHttpClient.clearCache();
 		this.server.start(API_SERVER_PORT);
 		this.webClient = new WebClient();
 		WebClientOptions options = this.webClient.getOptions();
@@ -759,6 +761,125 @@ public class BlogUiApplicationTests {
 				"    </p>\n" + //
 				"  </div>\n" + //
 				"</article>");
+	}
+
+	@Test
+	public void testCachingNotModified() throws Exception {
+		this.server.enqueue(new MockResponse()
+				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.setHeader(HttpHeaders.LAST_MODIFIED, "Fri, 27 Mar 9998 02:22:36 +0900")
+				.setBody("{\n" + //
+						"  \"entryId\": 100,\n" + //
+						"  \"content\": \"memo\\n\\n* hoge\\n* foo\\n* bar\",\n" + //
+						"  \"created\": {\n" + //
+						"    \"name\": \"Toshiaki Maki\",\n" + //
+						"    \"date\": \"9998-12-20T02:32:23+09:00\"\n" + //
+						"  },\n" + //
+						"  \"updated\": {\n" + //
+						"    \"name\": \"Toshiaki Maki\",\n" + //
+						"    \"date\": \"9998-03-27T02:22:36+09:00\"\n" + //
+						"  },\n" + //
+						"  \"frontMatter\": {\n" + //
+						"    \"title\": \"Hello World!\",\n" + //
+						"    \"categories\": [\n" + //
+						"      \"a\",\n" + //
+						"      \"b\",\n" + //
+						"      \"c\"\n" + //
+						"    ],\n" + //
+						"    \"tags\": [\n" + //
+						"      \"Java\",\n" + //
+						"      \"Spring\"\n" + //
+						"    ]\n" + //
+						"  }\n" + //
+						"}"));
+		this.server.enqueue(new MockResponse()
+				.setHeader(HttpHeaders.LAST_MODIFIED, "Fri, 27 Mar 9998 02:22:36 +0900")
+				.setResponseCode(HttpStatus.NOT_MODIFIED.value()));
+		{
+			HtmlPage top = this.webClient
+					.getPage("http://localhost:" + port + "/entries/100");
+			String xml = top.getBody().querySelector("article > div").asText();
+			assertThat(normalize(xml)).isEqualTo("memo\n\nhoge\nfoo\nbar");
+		}
+		{
+			HtmlPage top = this.webClient
+					.getPage("http://localhost:" + port + "/entries/100");
+			String xml = top.getBody().querySelector("article > div").asText();
+			assertThat(normalize(xml)).isEqualTo("memo\n\nhoge\nfoo\nbar");
+		}
+	}
+
+	@Test
+	public void testCachingModified() throws Exception {
+		this.server.enqueue(new MockResponse()
+				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.setHeader(HttpHeaders.LAST_MODIFIED, "Fri, 27 Mar 9998 02:22:36 +0900")
+				.setBody("{\n" + //
+						"  \"entryId\": 100,\n" + //
+						"  \"content\": \"memo\\n\\n* hoge\\n* foo\\n* bar\",\n" + //
+						"  \"created\": {\n" + //
+						"    \"name\": \"Toshiaki Maki\",\n" + //
+						"    \"date\": \"9998-12-20T02:32:23+09:00\"\n" + //
+						"  },\n" + //
+						"  \"updated\": {\n" + //
+						"    \"name\": \"Toshiaki Maki\",\n" + //
+						"    \"date\": \"9998-03-27T02:22:36+09:00\"\n" + //
+						"  },\n" + //
+						"  \"frontMatter\": {\n" + //
+						"    \"title\": \"Hello World!\",\n" + //
+						"    \"categories\": [\n" + //
+						"      \"a\",\n" + //
+						"      \"b\",\n" + //
+						"      \"c\"\n" + //
+						"    ],\n" + //
+						"    \"tags\": [\n" + //
+						"      \"Java\",\n" + //
+						"      \"Spring\"\n" + //
+						"    ]\n" + //
+						"  }\n" + //
+						"}"));
+		this.server.enqueue(new MockResponse()
+				.setHeader(HttpHeaders.LAST_MODIFIED, "Fri, 28 Mar 9998 02:22:36 +0900")
+				.setResponseCode(HttpStatus.OK.value()));
+		this.server.enqueue(new MockResponse()
+				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+				.setHeader(HttpHeaders.LAST_MODIFIED, "Fri, 28 Mar 9998 02:22:36 +0900")
+				.setBody("{\n" + //
+						"  \"entryId\": 100,\n" + //
+						"  \"content\": \"memo\\n\\n* hoge\\n* foo\\n* bar\\n* baz\",\n" + //
+						"  \"created\": {\n" + //
+						"    \"name\": \"Toshiaki Maki\",\n" + //
+						"    \"date\": \"9998-12-20T02:32:23+09:00\"\n" + //
+						"  },\n" + //
+						"  \"updated\": {\n" + //
+						"    \"name\": \"Toshiaki Maki\",\n" + //
+						"    \"date\": \"9998-03-28T02:22:36+09:00\"\n" + //
+						"  },\n" + //
+						"  \"frontMatter\": {\n" + //
+						"    \"title\": \"Hello World!\",\n" + //
+						"    \"categories\": [\n" + //
+						"      \"a\",\n" + //
+						"      \"b\",\n" + //
+						"      \"c\"\n" + //
+						"    ],\n" + //
+						"    \"tags\": [\n" + //
+						"      \"Java\",\n" + //
+						"      \"Spring\"\n" + //
+						"    ]\n" + //
+						"  }\n" + //
+						"}"));
+		{
+			HtmlPage top = this.webClient
+					.getPage("http://localhost:" + port + "/entries/100");
+			String xml = top.getBody().querySelector("article > div").asText();
+			assertThat(normalize(xml)).isEqualTo("memo\n\nhoge\nfoo\nbar");
+		}
+		{
+			HtmlPage top = this.webClient
+					.getPage("http://localhost:" + port + "/entries/100");
+			String xml = top.getBody().querySelector("article > div").asText();
+			assertThat(normalize(xml)).isEqualTo("memo\n\nhoge\nfoo\nbar\nbaz");
+		}
 	}
 
 	static String normalize(String text) {

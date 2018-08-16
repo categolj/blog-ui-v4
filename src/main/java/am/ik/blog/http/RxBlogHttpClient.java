@@ -1,17 +1,21 @@
 package am.ik.blog.http;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import am.ik.blog.BlogEntries;
 import am.ik.blog.BlogProperties;
-import am.ik.blog.entry.Categories;
-import am.ik.blog.entry.Category;
-import am.ik.blog.entry.Entry;
-import am.ik.blog.entry.Tag;
+import am.ik.blog.entry.*;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import rx.Observable;
@@ -29,13 +33,25 @@ import org.springframework.web.server.ResponseStatusException;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
+import static org.springframework.http.HttpHeaders.IF_MODIFIED_SINCE;
+import static org.springframework.http.HttpStatus.NOT_MODIFIED;
 
 @Component
 public class RxBlogHttpClient {
 	private final WebClient webClient;
+	private final Cache<EntryId, Entry> entryCache;
+	private static final Logger log = LoggerFactory.getLogger(RxBlogHttpClient.class);
 
-	public RxBlogHttpClient(WebClient.Builder builder, BlogProperties props) {
+	public RxBlogHttpClient(WebClient.Builder builder, MeterRegistry meterRegistry,
+			BlogProperties props) {
 		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
+		this.entryCache = CaffeineCacheMetrics.monitor(meterRegistry, Caffeine
+				.<EntryId, Entry>newBuilder() //
+				.maximumSize(100) //
+				.expireAfterWrite(3, TimeUnit.DAYS) //
+				.removalListener(
+						(key, value, cause) -> log.info("Remove cache(entryId={})", key)) //
+				.build(), "entryCache");
 	}
 
 	@HystrixCommand(commandProperties = {
@@ -43,11 +59,21 @@ public class RxBlogHttpClient {
 			@HystrixProperty(name = "execution.isolation.semaphore.maxConcurrentRequests", value = "20"), //
 	})
 	public Single<Entry> findById(Long entryId) {
-		Mono<Entry> entry = this.webClient.get() //
-				.uri("api/entries/{entryId}?excludeContent=false", entryId) //
-				.retrieve() //
-				.onStatus(HttpStatus::is4xxClientError, ignoreHystrixOnClientError()) //
-				.bodyToMono(Entry.class);
+		Mono<Entry> entry = Mono
+				.justOrEmpty(this.entryCache.get(new EntryId(entryId), x -> null)) //
+				.flatMap(e -> this.webClient.head() //
+						.uri("api/entries/{entryId}", entryId) //
+						.header(IF_MODIFIED_SINCE, e.getUpdated().getDate().rfc1123()) //
+						.exchange() //
+						.filter(r -> r.statusCode() == NOT_MODIFIED) //
+						.map(x -> e))
+				.switchIfEmpty(this.webClient.get() //
+						.uri("api/entries/{entryId}?excludeContent=false", entryId) //
+						.retrieve() //
+						.onStatus(HttpStatus::is4xxClientError,
+								ignoreHystrixOnClientError()) //
+						.bodyToMono(Entry.class)
+						.doOnNext(e -> this.entryCache.put(e.getEntryId(), e)));
 		return RxReactiveStreams.toSingle(entry);
 	}
 
@@ -150,6 +176,10 @@ public class RxBlogHttpClient {
 								.collect(toList()))) //
 						.collect(toList()));
 		return RxReactiveStreams.toSingle(categories);
+	}
+
+	public void clearCache() {
+		this.entryCache.invalidateAll();
 	}
 
 	private Function<ClientResponse, Mono<? extends Throwable>> ignoreHystrixOnClientError() {
