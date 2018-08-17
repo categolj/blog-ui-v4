@@ -1,6 +1,7 @@
 package am.ik.blog;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import am.ik.blog.entry.*;
 import reactor.core.publisher.Flux;
@@ -9,10 +10,11 @@ import reactor.core.publisher.Mono;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.result.view.Rendering;
+import org.springframework.web.server.ServerWebExchange;
+
+import static org.springframework.http.HttpHeaders.CACHE_CONTROL;
 
 @Controller
 public class BlogUiController {
@@ -60,13 +62,19 @@ public class BlogUiController {
 				.build();
 	}
 
-	@GetMapping("/entries/{entryId}")
-	public Rendering byId(@PathVariable("entryId") Long entryId) {
+	@RequestMapping(path = "/entries/{entryId}", method = { RequestMethod.GET,
+			RequestMethod.HEAD })
+	public Mono<Rendering> byId(@PathVariable("entryId") Long entryId,
+			ServerWebExchange exchange) {
 		Mono<Entry> entry = this.blogClient.findById(entryId).cache();
-		return Rendering.view("entry") //
-				.modelAttribute("entry", entry) //
-				.modelAttribute("checker", entry.map(ContentChecker::new)) //
-				.build();
+		return entry.map(e -> {
+			exchange.checkNotModified(e.getUpdated().getDate().getValue().toInstant());
+			return Rendering.view("entry") //
+					.modelAttribute("entry", entry) //
+					.modelAttribute("checker", entry.map(ContentChecker::new)) //
+					.header(CACHE_CONTROL, "max-age=" + TimeUnit.HOURS.toSeconds(3)) //
+					.build();
+		});
 	}
 
 	@GetMapping("/p/entries/{entryId}")
