@@ -25,11 +25,23 @@ public class BlogUiController {
 	}
 
 	@GetMapping({ "/", "/entries" })
-	public Rendering home(@PageableDefault(size = 50) Pageable pageable) {
+	public Mono<Rendering> home(@PageableDefault(size = 50) Pageable pageable,
+			ServerWebExchange exchange) {
 		Flux<Entry> entries = this.blogClient.streamAll(pageable);
-		return Rendering.view("index") //
-				.modelAttribute("entries", entries) //
-				.build();
+		Rendering.Builder<?> builder = Rendering.view("index") //
+				.modelAttribute("entries", entries);
+		return entries.count() //
+				.filter(x -> x > 0) //
+				.flatMap(x -> entries.elementAt(0)) //
+				.map(e -> {
+					exchange.checkNotModified(
+							e.getUpdated().getDate().getValue().toInstant());
+					return builder //
+							.header(CACHE_CONTROL,
+									"max-age=" + TimeUnit.HOURS.toSeconds(3)) //
+							.build();
+				}) //
+				.switchIfEmpty(Mono.fromCallable(builder::build));
 	}
 
 	@GetMapping(path = { "/", "/entries" }, params = "q")
