@@ -27,19 +27,23 @@
         <script>
             (function () {
                 var cached = {};
-                document.querySelectorAll('.entries span + a').forEach(function (elm) {
+                var elms = document.querySelectorAll('.entries span + a');
+                for (var i = 0; i < elms.length; i++) {
+                    var elm = elms[i];
                     var url = elm.href;
-                    var prefetch = function () {
-                        if (!cached[url]) {
-                            var r = new XMLHttpRequest();
-                            r.open('GET', url + '?prefetch', true);
-                            r.send(null);
-                            cached[url] = true;
+                    var prefetch = function (url) {
+                        return function () {
+                            if (!cached[url]) {
+                                var r = new XMLHttpRequest();
+                                r.open('GET', url + '?prefetch', true);
+                                r.send(null);
+                                cached[url] = true;
+                            }
                         }
                     };
-                    elm.addEventListener('mouseover', prefetch);
-                    elm.addEventListener('touchstart', prefetch);
-                });
+                    elm.addEventListener('mouseover', prefetch(url));
+                    elm.addEventListener('touchstart', prefetch(url));
+                }
             })();
         </script>
     </article>
