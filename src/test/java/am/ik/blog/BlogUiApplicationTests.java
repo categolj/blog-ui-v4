@@ -137,12 +137,12 @@ public class BlogUiApplicationTests {
 				"      </a>\n" + //
 				"      }\n" + //
 				"    </span>\n" + //
-				"    <a href=\"/p/entries/99997\">\n" + //
-				"      \uD83C\uDD7F CategoLJ 4\n" + //
+				"    <a href=\"/entries/99997\">\n" + //
+				"      CategoLJ 4\n" + //
 				"    </a>\n" + //
 				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
-				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/p/entries/99997\">\n"
-				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/99997\"/>\n"
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/99997\">\n"
+				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/99997\"/>\n"
 				+ "    </a>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
@@ -623,12 +623,12 @@ public class BlogUiApplicationTests {
 				"      </a>\n" + //
 				"      }\n" + //
 				"    </span>\n" + //
-				"    <a href=\"/p/entries/99997\">\n" + //
-				"      \uD83C\uDD7F CategoLJ 4\n" + //
+				"    <a href=\"/entries/99997\">\n" + //
+				"      CategoLJ 4\n" + //
 				"    </a>\n" + //
 				"    <br class=\"invisible-inline-on-wide\"/>\n" + //
-				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/p/entries/99997\">\n"
-				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/p/entries/99997\"/>\n"
+				"    <a href=\"http://b.hatena.ne.jp/entry/https://blog.ik.am/entries/99997\">\n"
+				+ "      <img src=\"https://b.hatena.ne.jp/entry/image/https://blog.ik.am/entries/99997\"/>\n"
 				+ "    </a>\n" + //
 				"    \n" + //
 				"                \uD83D\uDDD3 \n" + //
