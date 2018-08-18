@@ -56,7 +56,7 @@ public class RxBlogHttpClient {
 
 	@HystrixCommand(commandProperties = {
 			@HystrixProperty(name = "execution.isolation.thread.timeoutInMilliseconds", value = "3000"), //
-			@HystrixProperty(name = "execution.isolation.semaphore.maxConcurrentRequests", value = "20"), //
+			@HystrixProperty(name = "execution.isolation.semaphore.maxConcurrentRequests", value = "40"), //
 	})
 	public Single<Entry> findById(Long entryId) {
 		Mono<Entry> entry = Mono
