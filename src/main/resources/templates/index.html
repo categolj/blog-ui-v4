@@ -31,6 +31,22 @@
                     class="visible-inline-on-wide">[[#{updated.label}]] </span><span>[[${entry.updated.date}]]</span>
             </li>
         </ul>
+        <script>
+            (function () {
+                var cached = {};
+                document.querySelectorAll('.entries span + a').forEach(function (x) {
+                    x.onmouseover = function () {
+                        var url = this.href;
+                        if (!cached[url]) {
+                            var r = new XMLHttpRequest();
+                            r.open('GET', url + '?prefetch', true);
+                            r.send(null);
+                            cached[url] = true;
+                        }
+                    };
+                });
+            })();
+        </script>
     </article>
 </div>
 </body>
