@@ -34,9 +34,9 @@
         <script>
             (function () {
                 var cached = {};
-                document.querySelectorAll('.entries span + a').forEach(function (x) {
-                    x.onmouseover = function () {
-                        var url = this.href;
+                document.querySelectorAll('.entries span + a').forEach(function (elm) {
+                    var url = this.href;
+                    var prefetch = function () {
                         if (!cached[url]) {
                             var r = new XMLHttpRequest();
                             r.open('GET', url + '?prefetch', true);
@@ -44,6 +44,8 @@
                             cached[url] = true;
                         }
                     };
+                    elm.addEventListener('mouseover', prefetch);
+                    elm.addEventListener('touchstart', prefetch);
                 });
             })();
         </script>
