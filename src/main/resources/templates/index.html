@@ -28,7 +28,7 @@
             (function () {
                 var cached = {};
                 document.querySelectorAll('.entries span + a').forEach(function (elm) {
-                    var url = this.href;
+                    var url = elm.href;
                     var prefetch = function () {
                         if (!cached[url]) {
                             var r = new XMLHttpRequest();
