@@ -24,7 +24,8 @@ public class BlogUiController {
 		this.blogClient = blogClient;
 	}
 
-	@GetMapping({ "/", "/entries" })
+	@RequestMapping(path = { "/", "/entries" }, method = { RequestMethod.GET,
+			RequestMethod.HEAD })
 	public Mono<Rendering> home(@PageableDefault(size = 50) Pageable pageable,
 			ServerWebExchange exchange) {
 		Flux<Entry> entries = this.blogClient.streamAll(pageable).cache();
