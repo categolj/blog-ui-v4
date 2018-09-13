@@ -39,11 +39,9 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/path: /actuator/prometheus
     spec:
-      imagePullSecrets:
-      - name: harbor-secret
       containers:
       - name: blog-ui
-        image: harbor-13-78-118-111.sslip.io/categolj/blog-ui:latest
+        image: asia.gcr.io/fe-tmaki/blog-ui:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
