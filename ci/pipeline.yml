@@ -105,7 +105,7 @@ jobs:
         put: slack-alert
         params:
           <<: *SLACK_FAILURE
-- name: unit-test-develop-jdk-10
+- name: unit-test-develop-jdk-11
   build_logs_to_retain: 5
   plan:
     - aggregate:
@@ -122,7 +122,7 @@ jobs:
           type: docker-image
           source:
             repository: maven
-            tag: 3-jdk-10
+            tag: 3-jdk-11
         inputs:
         - name: repo
         caches:
@@ -136,7 +136,7 @@ jobs:
             cd repo
             rm -rf ~/.m2
             ln -fs $(pwd)/m2 ~/.m2
-            mvn -Djava.version=10 -Dmaven-surefire-plugin.version=2.21.0 test
+            mvn -Djava.version=11 -Dmaven-surefire-plugin.version=2.21.0 -Dmockito.version=2.22.0 test
       on_failure:
         put: slack-alert
         params:
