@@ -136,7 +136,7 @@ jobs:
             cd repo
             rm -rf ~/.m2
             ln -fs $(pwd)/m2 ~/.m2
-            mvn -Djava.version=11 -Dmaven-surefire-plugin.version=2.21.0 -Dmockito.version=2.22.0 test
+            mvn -Djava.version=11 -Dmockito.version=2.22.0 test
       on_failure:
         put: slack-alert
         params:
