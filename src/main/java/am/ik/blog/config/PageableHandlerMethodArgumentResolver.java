@@ -2,6 +2,7 @@ package am.ik.blog.config;
 
 import java.util.OptionalInt;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.MethodParameter;
 import org.springframework.core.ReactiveAdapterRegistry;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Component
+@Lazy
 public class PageableHandlerMethodArgumentResolver
 		extends HandlerMethodArgumentResolverSupport {
 
