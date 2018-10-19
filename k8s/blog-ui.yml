@@ -51,7 +51,7 @@ spec:
         - name: SPRING_PROFILES_ACTIVE
           value: kubernetes
         - name: _JAVA_OPTIONS
-          value: "-Xmx222M -Xss1M -XX:MaxMetaspaceSize=120M -XX:ReservedCodeCacheSize=16M -XX:CompressedClassSpaceSize=20M -XX:MaxDirectMemorySize=32M -Duser.timezone=Asia/Tokyo -Duser.language=en -Dinfo.docker.digest=INFO_DOCKER_DIGEST"
+          value: "-Duser.timezone=Asia/Tokyo -Duser.language=en -Dinfo.docker.digest=INFO_DOCKER_DIGEST"
         - name: SPRING_SECURITY_USER_NAME
           valueFrom:
             secretKeyRef:
@@ -62,13 +62,14 @@ spec:
             secretKeyRef:
               name: blog-config-secret
               key: ops-password
-        - name: SPRING_SLEUTH_WEB_ADDITIONAL_SKIP_PATTERN
-          value: /actuator.*
+        volumeMounts:
+        - name: tmp
+          mountPath: /home/vcap/tmp
         resources:
           limits:
-            memory: "440Mi"
+            memory: "400Mi"
           requests:
-            memory: "440Mi"
+            memory: "400Mi"
         readinessProbe:
           httpGet:
             path: /actuator/health
@@ -95,3 +96,6 @@ spec:
                      values:
                      - blog-ui
                topologyKey: "kubernetes.io/hostname"
+      volumes:
+      - name: tmp
+        emptyDir: {}
