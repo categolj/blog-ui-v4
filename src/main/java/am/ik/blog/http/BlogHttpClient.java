@@ -36,14 +36,14 @@ public class BlogHttpClient implements BlogClient {
 		this.rxBlogHttpClient = rxBlogHttpClient;
 		this.retry = Retry.<String>onlyIf(ctx -> {
 			Throwable exception = ctx.exception();
-			if (ResponseStatusException.class.isInstance(exception)) {
+			if (exception instanceof ResponseStatusException) {
 				// Do not retry for client error
-				ResponseStatusException e = ResponseStatusException.class.cast(exception);
+				ResponseStatusException e = (ResponseStatusException) exception;
 				return !e.getStatus().is4xxClientError();
 			}
 			return true;
 		}) //
-                .timeout(Duration.ofSeconds(6))
+				.timeout(Duration.ofSeconds(6)) //
 				.retryMax(props.getRetryMax()) //
 				.backoff(Backoff.exponential(props.getRetryFirstBackoff(),
 						Duration.ofSeconds(10), 2, false)) //
