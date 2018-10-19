@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -48,7 +49,7 @@ public class HystrixExceptionHandler {
 				.modelAttribute("status", status) //
 				.modelAttribute("error", status.getReasonPhrase())
 				.modelAttribute("message", Objects.toString(cause.getMessage(), ""));
-		if (env.acceptsProfiles("default", "debug")) {
+		if (env.acceptsProfiles(Profiles.of("default", "debug"))) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
 			builder = builder //
