@@ -86,7 +86,8 @@ jobs:
         image_resource:
           type: docker-image
           source:
-            repository: maven
+            repository: openjdk
+            tag: 11-slim
         inputs:
         - name: repo
         caches:
@@ -100,43 +101,7 @@ jobs:
             cd repo
             rm -rf ~/.m2
             ln -fs $(pwd)/m2 ~/.m2
-            mvn test
-      on_failure:
-        put: slack-alert
-        params:
-          <<: *SLACK_FAILURE
-- name: unit-test-develop-jdk-11
-  build_logs_to_retain: 5
-  plan:
-    - aggregate:
-      - get: repo
-        resource: repo-develop
-        # trigger: true
-    - task: mvn-test
-      privileged: true
-      params:
-        <<: *JAVA_OPS
-      config: &MVN_TEST_CONFIG
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: maven
-            tag: 3-jdk-11
-        inputs:
-        - name: repo
-        caches:
-        - path: repo/m2
-        run:
-          path: bash
-          args:
-          - -c
-          - |
-            set -e
-            cd repo
-            rm -rf ~/.m2
-            ln -fs $(pwd)/m2 ~/.m2
-            mvn -Djava.version=11 -Dmockito.version=2.22.0 test
+            ./mvnw test
       on_failure:
         put: slack-alert
         params:
@@ -154,7 +119,8 @@ jobs:
       image_resource:
         type: docker-image
         source:
-          repository: maven
+          repository: openjdk
+          tag: 11-slim
       inputs:
       - name: repo
       outputs:
@@ -170,7 +136,7 @@ jobs:
           cd repo
           rm -rf ~/.m2
           ln -fs $(pwd)/m2 ~/.m2
-          mvn package -DskipTests=true
+          ./mvnw package -DskipTests=true
           cp target/*.jar ../build/
   - aggregate:
     - put: nexus
