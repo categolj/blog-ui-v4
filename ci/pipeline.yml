@@ -15,7 +15,6 @@ resource_types:
   source:
     repository: zlabjp/kubernetes-resource
     tag: "1.11"
-
 resources:
   - name: repo-master
     type: git
@@ -159,32 +158,45 @@ jobs:
     - get: nexus
       passed:
       - upload-to-nexus-snapshots
-  - task: update-docker
-    config: &COPY_DOCKERFILE
+  - task: build-image
+    privileged: true
+    config: &BUILD_IMAGE
       platform: linux
       image_resource:
         type: docker-image
         source:
-          repository: ubuntu
+          repository: springci/spring-boot-jdk11-ci-image
+          tag: master
       inputs:
       - name: repo
       - name: nexus
       outputs:
-      - name: updated 
+      - name: image
+      caches:
+      - path: repo/packs
       run:
         path: bash
         args:
         - -c
         - |
           set -e
-          mv nexus/*.jar updated/app.jar
-          cp repo/Dockerfile updated/Dockerfile
-          cat updated/Dockerfile
+          cd repo
+          curl -L -J -s -o cf-cli.tgz "https://cli.run.pivotal.io/stable?release=linux64-binary&version=6.40.0"
+          tar -zxf cf-cli.tgz -C /usr/local/bin
+          cf install-plugin -f cflocal
+          source /docker-lib.sh
+          start_docker
+
+          mv packs/.*.cache ./ || true
+          cf local stage blog-ui -p $(ls ../nexus/*.jar)
+          cf local export blog-ui -r making/blog-ui:latest
+          mv .*.cache packs/ || true
+          docker images
+          docker save making/blog-ui:latest  > ../image/image
+          docker images --no-trunc --digests making/blog-ui --format "{{.ID}}" > ../image/image-id
   - put: docker
-    params: &DOCKER_PUSH
-      build: updated
-      build_args:
-        JAR_FILE: app.jar
+    params:
+      load: image
     on_failure:
       put: slack-alert
       params:
@@ -406,12 +418,13 @@ jobs:
     - get: nexus
       passed:
       - upload-to-nexus-releases
-  - task: update-docker
+  - task: build-image
+    privileged: true
     config:
-      <<: *COPY_DOCKERFILE
+      <<: *BUILD_IMAGE
   - put: docker
     params:
-      <<: *DOCKER_PUSH
+      load: image
       tag: repo-version/number
       tag_as_latest: true
     on_failure:
