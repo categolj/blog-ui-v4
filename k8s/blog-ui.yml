@@ -5,6 +5,20 @@ metadata:
   namespace: blog
   labels:
     app: blog-ui
+  annotations:
+    spring.cloud.gateway/routes: |
+      predicates:
+      - Host=blog.ik.am
+      filters:
+      - name: Hystrix
+        args:
+          name: blog/blog-ui
+          fallbackUri: forward:/error/503
+      - SecureHeaders
+      - name: Retry
+        args:
+          retries: 3
+          statuses: BAD_GATEWAY
 spec:
   selector:
     app: blog-ui
@@ -34,7 +48,7 @@ spec:
       labels:
         app: blog-ui
       annotations:
-        kubernetes.io/change-cause: "FIXME"
+        kubernetes.io/change-cause: "Update gateway annotations"
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
         prometheus.io/path: /actuator/prometheus
