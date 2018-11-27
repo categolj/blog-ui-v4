@@ -8,13 +8,13 @@ metadata:
   annotations:
     spring.cloud.gateway/routes: |
       predicates:
+      - RequestLogging
       - Host=blog.ik.am
       filters:
       - name: Hystrix
         args:
           name: blog/blog-ui
           fallbackUri: forward:/error/503
-      - SecureHeaders
       - name: Retry
         args:
           retries: 3
