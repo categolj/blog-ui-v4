@@ -8,9 +8,9 @@ metadata:
   annotations:
     spring.cloud.gateway/routes: |
       predicates:
-      - RequestLogging
       - Host=blog.ik.am
       filters:
+      - RequestLogging
       - name: Hystrix
         args:
           name: blog/blog-ui
