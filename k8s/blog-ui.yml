@@ -44,7 +44,7 @@ spec:
       labels:
         app: blog-ui
       annotations:
-        kubernetes.io/change-cause: "Update gateway annotations"
+        kubernetes.io/change-cause: "FIXME"
         prometheus.io/scrape: "true"
         prometheus.io/port: "8080"
         prometheus.io/path: /actuator/prometheus
