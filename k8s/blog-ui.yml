@@ -11,10 +11,6 @@ metadata:
       - Host=blog.ik.am
       filters:
       - RequestLogging
-      - name: Hystrix
-        args:
-          name: blog/blog-ui
-          fallbackUri: forward:/error/503
       - name: Retry
         args:
           retries: 3
