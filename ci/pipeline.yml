@@ -239,6 +239,7 @@ jobs:
           sed "s/FIXME/Bump to ${DIGEST}/g" | \
           sed "s/INFO_DOCKER_DIGEST/${DIGEST}/g" | \
           sed "s/namespace: blog/namespace: blog-dev/g" | \
+          sed "s/ik.am/k8s.bosh.tokyo/g" | \
           sed "s/3008/3058/g" > updated/blog-ui.yml
   - put: k8s-develop
     params:
