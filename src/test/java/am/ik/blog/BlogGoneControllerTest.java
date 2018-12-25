@@ -1,6 +1,7 @@
 package am.ik.blog;
 
 import am.ik.blog.config.ActuatorConfig;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -20,6 +21,8 @@ public class BlogGoneControllerTest {
 	BlogClient blogClient;
 	@Autowired
 	WebTestClient webTestClient;
+	@MockBean
+	CircuitBreakerRegistry circuitBreakerRegistry;
 
 	@Test
 	public void view() throws Exception {

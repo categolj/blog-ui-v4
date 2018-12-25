@@ -25,6 +25,7 @@
         <dockerfile-maven.version>1.3.6</dockerfile-maven.version>
         <docker.org>making</docker.org>
         <spring-cloud.version>Greenwich.RC2</spring-cloud.version>
+        <resilience4j.version>0.13.2</resilience4j.version>
     </properties>
 
     <dependencies>
@@ -37,6 +38,22 @@
             <groupId>am.ik.marked4j</groupId>
             <artifactId>marked4j</artifactId>
             <version>0.10.3</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-reactor</artifactId>
+            <version>${resilience4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-spring-boot2</artifactId>
+            <version>${resilience4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.hibernate.validator</groupId>
+                    <artifactId>hibernate-validator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -65,10 +82,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-zipkin</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>

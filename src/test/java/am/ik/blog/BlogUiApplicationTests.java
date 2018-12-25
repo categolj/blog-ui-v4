@@ -1,6 +1,6 @@
 package am.ik.blog;
 
-import am.ik.blog.http.RxBlogHttpClient;
+import am.ik.blog.http.BlogHttpClient;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
@@ -36,11 +36,11 @@ public class BlogUiApplicationTests {
 	MockWebServer server = new MockWebServer();
 	WebClient webClient;
 	@Autowired
-	RxBlogHttpClient rxBlogHttpClient;
+	BlogHttpClient blogHttpClient;
 
 	@Before
 	public void setup() throws Exception {
-		this.rxBlogHttpClient.clearCache();
+		this.blogHttpClient.clearCache();
 		this.server.start(API_SERVER_PORT);
 		this.webClient = new WebClient();
 		WebClientOptions options = this.webClient.getOptions();
