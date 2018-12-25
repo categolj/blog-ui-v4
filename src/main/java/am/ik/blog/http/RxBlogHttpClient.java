@@ -1,12 +1,17 @@
 package am.ik.blog.http;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import am.ik.blog.BlogEntries;
 import am.ik.blog.BlogProperties;
-import am.ik.blog.entry.*;
+import am.ik.blog.entry.Categories;
+import am.ik.blog.entry.Category;
+import am.ik.blog.entry.Entry;
+import am.ik.blog.entry.EntryId;
+import am.ik.blog.entry.Tag;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
@@ -16,8 +21,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.cache.CacheMono;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Signal;
 import rx.Observable;
 import rx.RxReactiveStreams;
 import rx.Single;
@@ -46,7 +53,7 @@ public class RxBlogHttpClient {
 			BlogProperties props) {
 		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
 		this.entryCache = CaffeineCacheMetrics.monitor(meterRegistry, Caffeine
-				.<EntryId, Entry>newBuilder() //
+				.newBuilder() //
 				.maximumSize(100) //
 				.expireAfterWrite(3, TimeUnit.DAYS) //
 				.removalListener(
@@ -59,21 +66,24 @@ public class RxBlogHttpClient {
 			@HystrixProperty(name = "execution.isolation.semaphore.maxConcurrentRequests", value = "40"), //
 	})
 	public Single<Entry> findById(Long entryId) {
-		Mono<Entry> entry = Mono
-				.justOrEmpty(this.entryCache.get(new EntryId(entryId), x -> null)) //
-				.flatMap(e -> this.webClient.head() //
-						.uri("api/entries/{entryId}", entryId) //
-						.header(IF_MODIFIED_SINCE, e.getUpdated().getDate().rfc1123()) //
-						.exchange() //
-						.filter(r -> r.statusCode() == NOT_MODIFIED) //
-						.map(x -> e))
-				.switchIfEmpty(this.webClient.get() //
+		Mono<Entry> entry = CacheMono
+				.lookup(key -> Mono.justOrEmpty(this.entryCache.get(key, x -> null)) //
+						.flatMap(e -> this.webClient.head() //
+								.uri("api/entries/{entryId}", entryId) //
+								.header(IF_MODIFIED_SINCE,
+										e.getUpdated().getDate().rfc1123()) //
+								.exchange() //
+								.filter(r -> r.statusCode() == NOT_MODIFIED) //
+								.map(x -> e))
+						.map(Signal::next), new EntryId(entryId)) //
+				.onCacheMissResume(() -> this.webClient.get() //
 						.uri("api/entries/{entryId}?excludeContent=false", entryId) //
 						.retrieve() //
 						.onStatus(HttpStatus::is4xxClientError,
 								ignoreHystrixOnClientError()) //
-						.bodyToMono(Entry.class)
-						.doOnNext(e -> this.entryCache.put(e.getEntryId(), e)));
+						.bodyToMono(Entry.class)) //
+				.andWriteWith((key, signal) -> Mono.fromRunnable(() -> this.entryCache
+						.put(key, Objects.requireNonNull(signal.get()))));
 		return RxReactiveStreams.toSingle(entry);
 	}
 
