@@ -13,8 +13,6 @@ import am.ik.blog.entry.EntryId;
 import am.ik.blog.entry.Tag;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.ratelimiter.RateLimiterRegistry;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import org.slf4j.Logger;
@@ -24,11 +22,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 
+import org.springframework.cloud.circuitbreaker.commons.ReactiveCircuitBreakerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import static am.ik.blog.http.Retryer.retry;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
@@ -39,12 +39,11 @@ import static org.springframework.http.HttpStatus.NOT_MODIFIED;
 public class BlogHttpClient implements BlogClient {
 	private final WebClient webClient;
 	private final Cache<EntryId, Entry> entryCache;
-	private final DefaultResilience resilience;
+	private final ReactiveCircuitBreakerFactory circuitBreakerFactory;
 	private static final Logger log = LoggerFactory.getLogger(BlogHttpClient.class);
 
 	public BlogHttpClient(WebClient.Builder builder, MeterRegistry meterRegistry,
-			BlogProperties props, CircuitBreakerRegistry circuitBreakerRegistry,
-			RateLimiterRegistry rateLimiterRegistry) {
+			BlogProperties props, ReactiveCircuitBreakerFactory circuitBreakerFactory) {
 		this.entryCache = CaffeineCacheMetrics.monitor(meterRegistry, Caffeine
 				.newBuilder() //
 				.maximumSize(100) //
@@ -52,16 +51,7 @@ public class BlogHttpClient implements BlogClient {
 				.removalListener(
 						(key, value, cause) -> log.info("Remove cache(entryId={})", key)) //
 				.build(), "entryCache");
-		this.resilience = new DefaultResilience(circuitBreakerRegistry,
-				rateLimiterRegistry, meterRegistry) //
-						.registerAll("blog-ui.findById", //
-								"blog-ui.findAll", //
-								"blog-ui.streamAll", //
-								"blog-ui.findByQuery", //
-								"blog-ui.findByCategories", //
-								"blog-ui.findByTag", //
-								"blog-ui.findTags", //
-								"blog-ui.findCategories");
+		this.circuitBreakerFactory = circuitBreakerFactory;
 		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
 	}
 
@@ -82,8 +72,8 @@ public class BlogHttpClient implements BlogClient {
 						.bodyToMono(Entry.class)) //
 				.andWriteWith((key, signal) -> Mono.justOrEmpty(signal.get())
 						.doOnNext(e -> this.entryCache.put(key, e)).then());
-		return entry //
-				.transform(this.resilience.all("blog-ui.findById"));
+		return this.circuitBreakerFactory.create("blog-ui.findById")
+				.run(entry.transform(retry("blog-ui.findById")));
 	}
 
 	public Mono<BlogEntries> findAll(Pageable pageable) {
@@ -92,8 +82,8 @@ public class BlogHttpClient implements BlogClient {
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return entries //
-				.transform(this.resilience.all("blog-ui.findAll"));
+		return this.circuitBreakerFactory.create("blog-ui.findAll")
+				.run(entries.transform(retry("blog-ui.findAll")));
 	}
 
 	public Flux<Entry> streamAll(Pageable pageable) {
@@ -102,8 +92,8 @@ public class BlogHttpClient implements BlogClient {
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.header(ACCEPT, "application/stream+x-jackson-smile").retrieve()
 				.bodyToFlux(Entry.class);
-		return entries //
-				.transform(this.resilience.all("blog-ui.streamAll"));
+		return this.circuitBreakerFactory.create("blog-ui.streamAll")
+				.run(entries.transform(retry("blog-ui.streamAll")));
 	}
 
 	public Mono<BlogEntries> findByQuery(String query, Pageable pageable) {
@@ -112,8 +102,8 @@ public class BlogHttpClient implements BlogClient {
 						query, pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return entries //
-				.transform(this.resilience.all("blog-ui.findByQuery"));
+		return this.circuitBreakerFactory.create("blog-ui.findByQuery")
+				.run(entries.transform(retry("blog-ui.findByQuery")));
 	}
 
 	public Mono<BlogEntries> findByCategories(List<Category> categories,
@@ -124,8 +114,8 @@ public class BlogHttpClient implements BlogClient {
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return entries //
-				.transform(this.resilience.all("blog-ui.findByCategories"));
+		return this.circuitBreakerFactory.create("blog-ui.findByCategories")
+				.run(entries.transform(retry("blog-ui.findByCategories")));
 	}
 
 	public Mono<BlogEntries> findByTag(Tag tag, Pageable pageable) {
@@ -134,8 +124,8 @@ public class BlogHttpClient implements BlogClient {
 						tag, pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return entries //
-				.transform(this.resilience.all("blog-ui.findByTag"));
+		return this.circuitBreakerFactory.create("blog-ui.findByTag")
+				.run(entries.transform(retry("blog-ui.findByTag")));
 	}
 
 	public Mono<List<Tag>> findTags() {
@@ -147,8 +137,8 @@ public class BlogHttpClient implements BlogClient {
 				.map(s -> s.stream() //
 						.map(Tag::new) //
 						.collect(toList()));
-		return tags //
-				.transform(this.resilience.all("blog-ui.findTags"));
+		return this.circuitBreakerFactory.create("blog-ui.findTags")
+				.run(tags.transform(retry("blog-ui.findTags")));
 	}
 
 	public Mono<List<Categories>> findCategories() {
@@ -162,8 +152,8 @@ public class BlogHttpClient implements BlogClient {
 								.map(Category::new) //
 								.collect(toList()))) //
 						.collect(toList()));
-		return categories //
-				.transform(this.resilience.all("blog-ui.findCategories"));
+		return this.circuitBreakerFactory.create("blog-ui.findCategories")
+				.run(categories.transform(retry("blog-ui.findCategories")));
 	}
 
 	public void clearCache() {
