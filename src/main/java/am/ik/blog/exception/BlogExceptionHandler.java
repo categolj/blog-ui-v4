@@ -57,7 +57,7 @@ public class BlogExceptionHandler {
 	@ExceptionHandler(RetryExhaustedException.class)
 	public Rendering handleRetryExhaustedException(RetryExhaustedException e) {
 		log.warn("Retry exhausted!", e);
-		return this.renderError(e, HttpStatus.SERVICE_UNAVAILABLE);
+		return this.renderError(e.getCause(), HttpStatus.SERVICE_UNAVAILABLE);
 	}
 
 	@ExceptionHandler(Exception.class)
@@ -72,7 +72,7 @@ public class BlogExceptionHandler {
 		}
 	}
 
-	private Rendering renderError(Exception e, HttpStatus status) {
+	private Rendering renderError(Throwable e, HttpStatus status) {
 		Rendering.Builder builder = Rendering.view("error/error") //
 				.modelAttribute("status", status.value()) //
 				.modelAttribute("error", status.getReasonPhrase())
