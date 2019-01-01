@@ -11,6 +11,7 @@ import am.ik.blog.entry.Category;
 import am.ik.blog.entry.Entry;
 import am.ik.blog.entry.EntryId;
 import am.ik.blog.entry.Tag;
+import brave.Tracer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -40,10 +41,12 @@ public class BlogHttpClient implements BlogClient {
 	private final WebClient webClient;
 	private final Cache<EntryId, Entry> entryCache;
 	private final ReactiveCircuitBreakerFactory circuitBreakerFactory;
+	private final Tracer tracer;
 	private static final Logger log = LoggerFactory.getLogger(BlogHttpClient.class);
 
 	public BlogHttpClient(WebClient.Builder builder, MeterRegistry meterRegistry,
-			BlogProperties props, ReactiveCircuitBreakerFactory circuitBreakerFactory) {
+			BlogProperties props, ReactiveCircuitBreakerFactory circuitBreakerFactory,
+			Tracer tracer) {
 		this.entryCache = CaffeineCacheMetrics.monitor(meterRegistry, Caffeine
 				.newBuilder() //
 				.maximumSize(100) //
@@ -52,6 +55,7 @@ public class BlogHttpClient implements BlogClient {
 						(key, value, cause) -> log.info("Remove cache(entryId={})", key)) //
 				.build(), "entryCache");
 		this.circuitBreakerFactory = circuitBreakerFactory;
+		this.tracer = tracer;
 		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
 	}
 
@@ -72,8 +76,7 @@ public class BlogHttpClient implements BlogClient {
 						.bodyToMono(Entry.class)) //
 				.andWriteWith((key, signal) -> Mono.justOrEmpty(signal.get())
 						.doOnNext(e -> this.entryCache.put(key, e)).then());
-		return this.circuitBreakerFactory.create("blog-ui.findById")
-				.run(entry.transform(retry("blog-ui.findById")));
+		return this.decorate(entry, "blog-ui.findById");
 	}
 
 	public Mono<BlogEntries> findAll(Pageable pageable) {
@@ -82,8 +85,7 @@ public class BlogHttpClient implements BlogClient {
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return this.circuitBreakerFactory.create("blog-ui.findAll")
-				.run(entries.transform(retry("blog-ui.findAll")));
+		return this.decorate(entries, "blog-ui.findAll");
 	}
 
 	public Flux<Entry> streamAll(Pageable pageable) {
@@ -92,8 +94,7 @@ public class BlogHttpClient implements BlogClient {
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.header(ACCEPT, "application/stream+x-jackson-smile").retrieve()
 				.bodyToFlux(Entry.class);
-		return this.circuitBreakerFactory.create("blog-ui.streamAll")
-				.run(entries.transform(retry("blog-ui.streamAll")));
+		return this.decorate(entries, "blog-ui.streamAll");
 	}
 
 	public Mono<BlogEntries> findByQuery(String query, Pageable pageable) {
@@ -102,8 +103,7 @@ public class BlogHttpClient implements BlogClient {
 						query, pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return this.circuitBreakerFactory.create("blog-ui.findByQuery")
-				.run(entries.transform(retry("blog-ui.findByQuery")));
+		return this.decorate(entries, "blog-ui.findByQuery");
 	}
 
 	public Mono<BlogEntries> findByCategories(List<Category> categories,
@@ -114,8 +114,7 @@ public class BlogHttpClient implements BlogClient {
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return this.circuitBreakerFactory.create("blog-ui.findByCategories")
-				.run(entries.transform(retry("blog-ui.findByCategories")));
+		return this.decorate(entries, "blog-ui.findByCategories");
 	}
 
 	public Mono<BlogEntries> findByTag(Tag tag, Pageable pageable) {
@@ -124,8 +123,7 @@ public class BlogHttpClient implements BlogClient {
 						tag, pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
-		return this.circuitBreakerFactory.create("blog-ui.findByTag")
-				.run(entries.transform(retry("blog-ui.findByTag")));
+		return this.decorate(entries, "blog-ui.findByTag");
 	}
 
 	public Mono<List<Tag>> findTags() {
@@ -137,8 +135,7 @@ public class BlogHttpClient implements BlogClient {
 				.map(s -> s.stream() //
 						.map(Tag::new) //
 						.collect(toList()));
-		return this.circuitBreakerFactory.create("blog-ui.findTags")
-				.run(tags.transform(retry("blog-ui.findTags")));
+		return this.decorate(tags, "blog-ui.findTags");
 	}
 
 	public Mono<List<Categories>> findCategories() {
@@ -152,8 +149,17 @@ public class BlogHttpClient implements BlogClient {
 								.map(Category::new) //
 								.collect(toList()))) //
 						.collect(toList()));
-		return this.circuitBreakerFactory.create("blog-ui.findCategories")
-				.run(categories.transform(retry("blog-ui.findCategories")));
+		return this.decorate(categories, "blog-ui.findCategories");
+	}
+
+	<T> Mono<T> decorate(Mono<T> mono, String name) {
+		return this.circuitBreakerFactory.create(name)
+				.run(mono.transform(retry(name, this.tracer)));
+	}
+
+	<T> Flux<T> decorate(Flux<T> flux, String name) {
+		return this.circuitBreakerFactory.create(name)
+				.run(flux.transform(retry(name, this.tracer)));
 	}
 
 	public void clearCache() {
