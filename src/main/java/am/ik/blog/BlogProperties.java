@@ -12,6 +12,7 @@ public class BlogProperties {
 	private Service point;
 	private Duration retryFirstBackoff = Duration.ofSeconds(1);
 	private int retryMax = 3;
+	private boolean debugHttp = false;
 
 	public Service getApi() {
 		return api;
@@ -43,6 +44,14 @@ public class BlogProperties {
 
 	public void setRetryMax(int retryMax) {
 		this.retryMax = retryMax;
+	}
+
+	public boolean isDebugHttp() {
+		return debugHttp;
+	}
+
+	public void setDebugHttp(boolean debugHttp) {
+		this.debugHttp = debugHttp;
 	}
 
 	public static class Service {

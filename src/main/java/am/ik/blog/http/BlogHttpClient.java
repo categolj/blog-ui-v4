@@ -22,10 +22,12 @@ import reactor.cache.CacheMono;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
+import reactor.netty.http.client.HttpClient;
 
 import org.springframework.cloud.circuitbreaker.commons.ReactiveCircuitBreakerFactory;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -56,7 +58,11 @@ public class BlogHttpClient implements BlogClient {
 				.build(), "entryCache");
 		this.circuitBreakerFactory = circuitBreakerFactory;
 		this.tracer = tracer;
-		this.webClient = builder.baseUrl(props.getApi().getUrl()).build();
+
+		HttpClient httpClient = HttpClient.create().wiretap(props.isDebugHttp());
+		this.webClient = builder.baseUrl(props.getApi().getUrl()) //
+				.clientConnector(new ReactorClientHttpConnector(httpClient)) //
+				.build();
 	}
 
 	public Mono<Entry> findById(Long entryId) {
