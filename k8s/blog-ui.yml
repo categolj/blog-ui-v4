@@ -58,6 +58,8 @@ spec:
           value: kubernetes
         - name: _JAVA_OPTIONS
           value: "-Duser.timezone=Asia/Tokyo -Duser.language=en -Dinfo.docker.digest=INFO_DOCKER_DIGEST"
+        - name: SPRING_APPLICATION_NAME
+          value: "${NAMESPACE}:blog-ui"
         - name: SPRING_SECURITY_USER_NAME
           valueFrom:
             secretKeyRef:
@@ -68,6 +70,10 @@ spec:
             secretKeyRef:
               name: blog-config-secret
               key: ops-password
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         volumeMounts:
         - name: tmp
           mountPath: /home/vcap/tmp
