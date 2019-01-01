@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.reactive.result.view.Rendering;
+import org.springframework.web.server.ResponseStatusException;
 
 @ControllerAdvice
 public class BlogExceptionHandler {
@@ -24,12 +25,19 @@ public class BlogExceptionHandler {
 		this.env = env;
 	}
 
+	@ExceptionHandler(ResponseStatusException.class)
+	public Rendering handleResponseStatusException(ResponseStatusException e) {
+		return this.renderError(e, e.getStatus());
+	}
+
+	@ExceptionHandler(WebClientResponseException.class)
+	public Rendering handleWebClientResponseException(WebClientResponseException e) {
+		return this.renderError(e, e.getStatusCode());
+	}
+
 	@ExceptionHandler(RuntimeException.class)
-	public Rendering handle(RuntimeException e) {
-		if (e instanceof WebClientResponseException) {
-			WebClientResponseException exception = (WebClientResponseException) e;
-			return this.renderError(e, exception.getStatusCode());
-		}
+	public Rendering handleUnexpectedException(RuntimeException e) {
+		log.error("Unexpected exception occurred!", e);
 		return this.renderError(e, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
