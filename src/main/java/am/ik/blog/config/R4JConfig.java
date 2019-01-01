@@ -19,7 +19,7 @@ public class R4JConfig {
 			@Override
 			public TimeLimiterConfig getTimeLimiterConfig(String id) {
 				return TimeLimiterConfig.custom() //
-						.timeoutDuration(Retryer.TIMEOUT) //
+						.timeoutDuration(Retryer.TIMEOUT.plusSeconds(1)) //
 						.build();
 			}
 

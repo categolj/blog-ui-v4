@@ -20,7 +20,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 public class Retryer {
 	private static final Logger log = LoggerFactory.getLogger(Retryer.class);
-	public static final Duration TIMEOUT = Duration.ofSeconds(6);
+	public static final Duration TIMEOUT = Duration.ofSeconds(8);
 	public static final Predicate<Throwable> retryable = e -> {
 		if (e instanceof WebClientResponseException) {
 			return !((WebClientResponseException) e).getStatusCode().is4xxClientError();
