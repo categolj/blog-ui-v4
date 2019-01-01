@@ -1,6 +1,7 @@
 package am.ik.blog;
 
 import am.ik.blog.config.ActuatorConfig;
+import brave.Tracer;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +24,8 @@ public class BlogGoneControllerTest {
 	WebTestClient webTestClient;
 	@MockBean
 	CircuitBreakerRegistry circuitBreakerRegistry;
+	@MockBean
+	Tracer tracer;
 
 	@Test
 	public void view() throws Exception {
