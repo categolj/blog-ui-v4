@@ -7,13 +7,17 @@
         <th>Error</th>
         <td>[[${error}]]</td>
     </tr>
-    <tr data-th-if="${@environment.acceptsProfiles('default', 'debug') and exception != null}">
-        <th>Exception</th>
-        <td>[[${exception}]]</td>
-    </tr>
     <tr>
         <th>Message</th>
         <td>[[${message}]]</td>
+    </tr>
+    <tr data-th-if="${b3 != null}">
+        <th>B3</th>
+        <td>[[${b3}]]</td>
+    </tr>
+    <tr data-th-if="${@environment.acceptsProfiles('default', 'debug') and exception != null}">
+        <th>Exception</th>
+        <td>[[${exception}]]</td>
     </tr>
     <tr data-th-if="${@environment.acceptsProfiles('default', 'debug') and trace != null}">
         <th>Trace</th>

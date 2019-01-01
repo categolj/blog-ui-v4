@@ -5,6 +5,8 @@ import java.io.StringWriter;
 import java.util.Objects;
 import java.util.concurrent.TimeoutException;
 
+import brave.Span;
+import brave.Tracer;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerOpenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,9 +25,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class BlogExceptionHandler {
 	private final Logger log = LoggerFactory.getLogger(BlogExceptionHandler.class);
 	private final Environment env;
+	private final Tracer tracer;
 
-	public BlogExceptionHandler(Environment env) {
+	public BlogExceptionHandler(Environment env, Tracer tracer) {
 		this.env = env;
+		this.tracer = tracer;
 	}
 
 	@ExceptionHandler(ResponseStatusException.class)
@@ -73,10 +77,12 @@ public class BlogExceptionHandler {
 	}
 
 	private Rendering renderError(Throwable e, HttpStatus status) {
+		Span span = this.tracer.currentSpan();
 		Rendering.Builder builder = Rendering.view("error/error") //
 				.modelAttribute("status", status.value()) //
 				.modelAttribute("error", status.getReasonPhrase())
-				.modelAttribute("message", Objects.toString(e.getMessage(), ""));
+				.modelAttribute("message", Objects.toString(e.getMessage(), ""))
+				.modelAttribute("b3", span == null ? null : span.context());
 		if (env.acceptsProfiles(Profiles.of("default", "debug"))) {
 			StringWriter sw = new StringWriter();
 			e.printStackTrace(new PrintWriter(sw));
