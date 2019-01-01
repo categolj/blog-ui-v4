@@ -3,9 +3,12 @@ package am.ik.blog.exception;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Objects;
+import java.util.concurrent.TimeoutException;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreakerOpenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import reactor.retry.RetryExhaustedException;
 
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
@@ -27,18 +30,46 @@ public class BlogExceptionHandler {
 
 	@ExceptionHandler(ResponseStatusException.class)
 	public Rendering handleResponseStatusException(ResponseStatusException e) {
-		return this.renderError(e, e.getStatus());
+		HttpStatus status = e.getStatus();
+		this.logIfSeverError(e, status);
+		return this.renderError(e, status);
 	}
 
 	@ExceptionHandler(WebClientResponseException.class)
 	public Rendering handleWebClientResponseException(WebClientResponseException e) {
-		return this.renderError(e, e.getStatusCode());
+		HttpStatus status = e.getStatusCode();
+		this.logIfSeverError(e, status);
+		return this.renderError(e, status);
 	}
 
-	@ExceptionHandler(RuntimeException.class)
-	public Rendering handleUnexpectedException(RuntimeException e) {
+	@ExceptionHandler(TimeoutException.class)
+	public Rendering handleTimeoutException(TimeoutException e) {
+		log.warn("Timeout occurred!", e);
+		return this.renderError(e, HttpStatus.SERVICE_UNAVAILABLE);
+	}
+
+	@ExceptionHandler(CircuitBreakerOpenException.class)
+	public Rendering handleCircuitBreakerOpenException(CircuitBreakerOpenException e) {
+		log.warn("Circuit breaker is currently open!");
+		return this.renderError(e, HttpStatus.SERVICE_UNAVAILABLE);
+	}
+
+	@ExceptionHandler(RetryExhaustedException.class)
+	public Rendering handleRetryExhaustedException(RetryExhaustedException e) {
+		log.warn("Retry exhausted!", e);
+		return this.renderError(e, HttpStatus.SERVICE_UNAVAILABLE);
+	}
+
+	@ExceptionHandler(Exception.class)
+	public Rendering handleUnexpectedException(Exception e) {
 		log.error("Unexpected exception occurred!", e);
 		return this.renderError(e, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+
+	private void logIfSeverError(Exception e, HttpStatus statusCode) {
+		if (statusCode.is5xxServerError()) {
+			log.warn("Server error occurred! " + statusCode, e);
+		}
 	}
 
 	private Rendering renderError(Exception e, HttpStatus status) {
