@@ -27,7 +27,9 @@ public class R4JConfig {
 			public CircuitBreakerConfig getDefaultCircuitBreakerConfig() {
 				return CircuitBreakerConfig.custom() //
 						.waitDurationInOpenState(Duration.ofSeconds(10)) //
-						.failureRateThreshold(20) //
+						.failureRateThreshold(40) //
+						.ringBufferSizeInClosedState(20) //
+						.ringBufferSizeInHalfOpenState(5) //
 						.recordFailure(Retryer.retryable) //
 						.build();
 			}

@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static am.ik.blog.http.Retryer.retry;
+import static io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
@@ -58,8 +59,10 @@ public class BlogHttpClient implements BlogClient {
 				.build(), "entryCache");
 		this.circuitBreakerFactory = circuitBreakerFactory;
 		this.tracer = tracer;
-
-		HttpClient httpClient = HttpClient.create().wiretap(props.isDebugHttp());
+		HttpClient httpClient = HttpClient.create() //
+				.wiretap(props.isDebugHttp()) //
+				.tcpConfiguration(
+						tcpClient -> tcpClient.option(CONNECT_TIMEOUT_MILLIS, 1_000));
 		this.webClient = builder.baseUrl(props.getApi().getUrl()) //
 				.clientConnector(new ReactorClientHttpConnector(httpClient)) //
 				.build();
