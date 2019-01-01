@@ -43,7 +43,7 @@ public class BlogExceptionHandler {
 
 	private Rendering renderError(Exception e, HttpStatus status) {
 		Rendering.Builder builder = Rendering.view("error/error") //
-				.modelAttribute("status", status) //
+				.modelAttribute("status", status.value()) //
 				.modelAttribute("error", status.getReasonPhrase())
 				.modelAttribute("message", Objects.toString(e.getMessage(), ""));
 		if (env.acceptsProfiles(Profiles.of("default", "debug"))) {
