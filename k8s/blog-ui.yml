@@ -11,10 +11,6 @@ metadata:
       - Host=blog.ik.am
       filters:
       - RequestLogging
-      - name: Retry
-        args:
-          retries: 3
-          statuses: BAD_GATEWAY
 spec:
   selector:
     app: blog-ui
