@@ -1,6 +1,7 @@
 package am.ik.blog.http;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -42,7 +43,8 @@ public class Retryer {
 				Throwable exception = ctx.exception();
 				if (exception != null) {
 					span.tag("retry.exception", exception.getClass().getName());
-					span.tag("retry.message", exception.getMessage());
+					span.tag("retry.message",
+							Objects.toString(exception.getMessage(), ""));
 				}
 				log.warn("Retrying name={} {}", tpl.getT1(), ctx);
 			});
