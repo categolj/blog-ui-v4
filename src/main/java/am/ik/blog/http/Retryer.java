@@ -14,8 +14,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.retry.Backoff;
 import reactor.retry.Retry;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
@@ -30,33 +28,36 @@ public class Retryer {
 		}
 	};
 
-	private static final Retry<Tuple2<String, Tracer>> retry = Retry
-			.<Tuple2<String, Tracer>>onlyIf(ctx -> retryable.test(ctx.exception())) //
-			.retryMax(3) //
-			.backoff(Backoff.fixed(Duration.ofSeconds(1))) //
-			.doOnRetry(ctx -> {
-				Tuple2<String, Tracer> tpl = ctx.applicationContext();
-				Span span = tpl.getT2().currentSpan();
-				span.tag("retry.iteration", String.valueOf(ctx.iteration()));
-				Throwable exception = ctx.exception();
-				if (exception != null) {
-					span.tag("retry.exception", exception.getClass().getName());
-					span.tag("retry.message",
-							Objects.toString(exception.getMessage(), ""));
-				}
-				log.warn("Retrying name={} {}", tpl.getT1(), ctx);
-			});
+	private final Tracer tracer;
+	private final Retry<String> retry;
 
-	public static <T> Function<Publisher<T>, Publisher<T>> retry(String name,
-			Tracer tracer) {
+	public Retryer(Tracer tracer) {
+		this.tracer = tracer;
+		this.retry = Retry.<String>onlyIf(ctx -> retryable.test(ctx.exception())) //
+				.retryMax(3) //
+				.backoff(Backoff.fixed(Duration.ofSeconds(1))) //
+				.doOnRetry(ctx -> {
+					Span span = this.tracer.currentSpan();
+					span.tag("retry.iteration", String.valueOf(ctx.iteration()));
+					Throwable exception = ctx.exception();
+					if (exception != null) {
+						span.tag("retry.exception", exception.getClass().getName());
+						span.tag("retry.message",
+								Objects.toString(exception.getMessage(), ""));
+					}
+					log.warn("Retrying name={} {}", ctx.applicationContext(), ctx);
+				});
+	}
+
+	public <T> Function<Publisher<T>, Publisher<T>> retry(String name) {
 		return publisher -> {
 			if (publisher instanceof Mono) {
 				return ((Mono<T>) publisher)
-						.retryWhen(retry.withApplicationContext(Tuples.of(name, tracer)));
+						.retryWhen(retry.withApplicationContext(name));
 			}
 			else if (publisher instanceof Flux) {
 				return ((Flux<T>) publisher)
-						.retryWhen(retry.withApplicationContext(Tuples.of(name, tracer)));
+						.retryWhen(retry.withApplicationContext(name));
 			}
 			throw new IllegalStateException(
 					"Publisher of type <" + publisher.getClass().getSimpleName()

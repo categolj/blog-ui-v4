@@ -29,7 +29,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static am.ik.blog.http.Retryer.retry;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
@@ -41,7 +40,7 @@ public class BlogHttpClient implements BlogClient {
 	private final WebClient webClient;
 	private final Cache<EntryId, Entry> entryCache;
 	private final ReactiveCircuitBreakerFactory circuitBreakerFactory;
-	private final Tracer tracer;
+	private final Retryer retryer;
 	private static final Logger log = LoggerFactory.getLogger(BlogHttpClient.class);
 
 	public BlogHttpClient(WebClient.Builder builder, MeterRegistry meterRegistry,
@@ -55,7 +54,7 @@ public class BlogHttpClient implements BlogClient {
 						(key, value, cause) -> log.info("Remove cache(entryId={})", key)) //
 				.build(), "entryCache");
 		this.circuitBreakerFactory = circuitBreakerFactory;
-		this.tracer = tracer;
+		this.retryer = new Retryer(tracer);
 		this.webClient = builder.baseUrl(props.getApi().getUrl()) //
 				.build();
 	}
@@ -155,12 +154,12 @@ public class BlogHttpClient implements BlogClient {
 
 	<T> Mono<T> decorate(Mono<T> mono, String name) {
 		return this.circuitBreakerFactory.create(name)
-				.run(mono.transform(retry(name, this.tracer)));
+				.run(mono.transform(this.retryer.retry(name)));
 	}
 
 	<T> Flux<T> decorate(Flux<T> flux, String name) {
 		return this.circuitBreakerFactory.create(name)
-				.run(flux.transform(retry(name, this.tracer)));
+				.run(flux.transform(this.retryer.retry(name)));
 	}
 
 	public void clearCache() {
