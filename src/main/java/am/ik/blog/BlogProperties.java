@@ -10,9 +10,10 @@ import org.springframework.stereotype.Component;
 public class BlogProperties {
 	private Service api;
 	private Service point;
-	private Duration retryFirstBackoff = Duration.ofSeconds(1);
-	private int retryMax = 3;
+	private Retry retry = new Retry();
 	private boolean debugHttp = false;
+	private Duration connectTimeout = Duration.ofSeconds(1);
+	private Duration circuitBreakerTimeout = Duration.ofSeconds(6);
 
 	public Service getApi() {
 		return api;
@@ -30,20 +31,12 @@ public class BlogProperties {
 		this.point = point;
 	}
 
-	public Duration getRetryFirstBackoff() {
-		return retryFirstBackoff;
+	public Retry getRetry() {
+		return retry;
 	}
 
-	public void setRetryFirstBackoff(Duration retryFirstBackoff) {
-		this.retryFirstBackoff = retryFirstBackoff;
-	}
-
-	public int getRetryMax() {
-		return retryMax;
-	}
-
-	public void setRetryMax(int retryMax) {
-		this.retryMax = retryMax;
+	public void setRetry(Retry retry) {
+		this.retry = retry;
 	}
 
 	public boolean isDebugHttp() {
@@ -52,6 +45,43 @@ public class BlogProperties {
 
 	public void setDebugHttp(boolean debugHttp) {
 		this.debugHttp = debugHttp;
+	}
+
+	public Duration getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	public void setConnectTimeout(Duration connectTimeout) {
+		this.connectTimeout = connectTimeout;
+	}
+
+	public Duration getCircuitBreakerTimeout() {
+		return circuitBreakerTimeout;
+	}
+
+	public void setCircuitBreakerTimeout(Duration circuitBreakerTimeout) {
+		this.circuitBreakerTimeout = circuitBreakerTimeout;
+	}
+
+	public static class Retry {
+		private Duration fixedBackoff = Duration.ofSeconds(1);
+		private int max = 3;
+
+		public Duration getFixedBackoff() {
+			return fixedBackoff;
+		}
+
+		public void setFixedBackoff(Duration fixedBackoff) {
+			this.fixedBackoff = fixedBackoff;
+		}
+
+		public int getMax() {
+			return max;
+		}
+
+		public void setMax(int max) {
+			this.max = max;
+		}
 	}
 
 	public static class Service {

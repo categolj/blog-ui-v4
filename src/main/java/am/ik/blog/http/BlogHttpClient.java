@@ -54,7 +54,7 @@ public class BlogHttpClient implements BlogClient {
 						(key, value, cause) -> log.info("Remove cache(entryId={})", key)) //
 				.build(), "entryCache");
 		this.circuitBreakerFactory = circuitBreakerFactory;
-		this.retryer = new Retryer(tracer);
+		this.retryer = new Retryer(tracer, props.getRetry());
 		this.webClient = builder.baseUrl(props.getApi().getUrl()) //
 				.build();
 	}

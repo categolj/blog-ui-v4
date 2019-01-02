@@ -2,6 +2,7 @@ package am.ik.blog.config;
 
 import java.time.Duration;
 
+import am.ik.blog.BlogProperties;
 import am.ik.blog.http.Retryer;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
@@ -13,13 +14,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class R4JConfig {
 	@Bean
-	public R4JConfigFactory r4JConfigFactory() {
+	public R4JConfigFactory r4JConfigFactory(BlogProperties props) {
 		return new R4JConfigFactory.DefaultR4JConfigFactory() {
 
 			@Override
 			public TimeLimiterConfig getTimeLimiterConfig(String id) {
 				return TimeLimiterConfig.custom() //
-						.timeoutDuration(Duration.ofSeconds(6)) //
+						.timeoutDuration(props.getCircuitBreakerTimeout()) //
 						.build();
 			}
 

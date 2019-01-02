@@ -1,10 +1,10 @@
 package am.ik.blog.http;
 
-import java.time.Duration;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import am.ik.blog.BlogProperties;
 import brave.Span;
 import brave.Tracer;
 import org.reactivestreams.Publisher;
@@ -31,11 +31,11 @@ public class Retryer {
 	private final Tracer tracer;
 	private final Retry<String> retry;
 
-	public Retryer(Tracer tracer) {
+	public Retryer(Tracer tracer, BlogProperties.Retry props) {
 		this.tracer = tracer;
 		this.retry = Retry.<String>onlyIf(ctx -> retryable.test(ctx.exception())) //
-				.retryMax(3) //
-				.backoff(Backoff.fixed(Duration.ofSeconds(1))) //
+				.retryMax(props.getMax()) //
+				.backoff(Backoff.fixed(props.getFixedBackoff())) //
 				.doOnRetry(ctx -> {
 					Span span = this.tracer.currentSpan();
 					span.tag("retry.iteration", String.valueOf(ctx.iteration()));
