@@ -21,7 +21,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 public class Retryer {
 	private static final Logger log = LoggerFactory.getLogger(Retryer.class);
-	public static final Duration TIMEOUT = Duration.ofSeconds(6);
 	public static final Predicate<Throwable> retryable = e -> {
 		if (e instanceof WebClientResponseException) {
 			return !((WebClientResponseException) e).getStatusCode().is4xxClientError();
@@ -33,7 +32,6 @@ public class Retryer {
 
 	private static final Retry<Tuple2<String, Tracer>> retry = Retry
 			.<Tuple2<String, Tracer>>onlyIf(ctx -> retryable.test(ctx.exception())) //
-			.timeout(TIMEOUT) //
 			.retryMax(3) //
 			.backoff(Backoff.fixed(Duration.ofSeconds(1))) //
 			.doOnRetry(ctx -> {
