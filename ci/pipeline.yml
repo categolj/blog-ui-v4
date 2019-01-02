@@ -67,6 +67,11 @@ resources:
     type: slack-notification
     source:
       url: ((slack-webhook-url))
+  - name: spring-cloud-circuitbreaker
+    type: git
+    source:
+      uri: https://github.com/spring-cloud-incubator/spring-cloud-circuitbreaker.git
+      branch: master
 jobs:
 ### Dev
 - name: unit-test-develop
@@ -75,6 +80,8 @@ jobs:
     - aggregate:
       - get: repo
         resource: repo-develop
+        trigger: true
+      - get: spring-cloud-circuitbreaker
         trigger: true
     - task: mvn-test
       privileged: true
@@ -89,6 +96,7 @@ jobs:
             tag: 11-slim
         inputs:
         - name: repo
+        - name: spring-cloud-circuitbreaker
         caches:
         - path: repo/m2
         run:
@@ -100,6 +108,11 @@ jobs:
             cd repo
             rm -rf ~/.m2
             ln -fs $(pwd)/m2 ~/.m2
+            pushd ../spring-cloud-circuitbreaker
+            rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-circuitbreaker*
+            rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-starter-circuitbreaker*
+            ./mvnw install -DskipTests=true
+            popd
             ./mvnw test
       on_failure:
         put: slack-alert
@@ -112,6 +125,7 @@ jobs:
     passed:
     - unit-test-develop
     trigger: true
+  - get: spring-cloud-circuitbreaker
   - task: mvn-package
     config: &NEXUS_PACKAGE_CONFIG
       platform: linux
@@ -122,6 +136,7 @@ jobs:
           tag: 11-slim
       inputs:
       - name: repo
+      - name: spring-cloud-circuitbreaker
       outputs:
       - name: build
       caches:
@@ -135,6 +150,11 @@ jobs:
           cd repo
           rm -rf ~/.m2
           ln -fs $(pwd)/m2 ~/.m2
+          pushd ../spring-cloud-circuitbreaker
+          rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-circuitbreaker*
+          rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-starter-circuitbreaker*
+          ./mvnw install -DskipTests=true
+          popd
           ./mvnw package -DskipTests=true
           cp target/*.jar ../build/
   - aggregate:
@@ -240,6 +260,7 @@ jobs:
           sed "s/INFO_DOCKER_DIGEST/${DIGEST}/g" | \
           sed "s/namespace: blog/namespace: blog-dev/g" | \
           sed "s/ik.am/k8s.bosh.tokyo/g" | \
+          sed "s/value: kubernetes/value: kubernetes,debug/g" | \
           sed "s/3008/3058/g" > updated/blog-ui.yml
   - put: k8s-develop
     params:
@@ -312,6 +333,7 @@ jobs:
       trigger: true
       passed:
       - merge-develop-to-master
+    - get: spring-cloud-circuitbreaker
   - task: mvn-test
     privileged: true
     params:
@@ -390,6 +412,7 @@ jobs:
     - get: repo-version
       passed:
       - tag-master
+    - get: spring-cloud-circuitbreaker
   - task: mvn-package
     config:
       <<: *NEXUS_PACKAGE_CONFIG
