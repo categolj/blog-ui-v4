@@ -15,6 +15,11 @@ resource_types:
   source:
     repository: zlabjp/kubernetes-resource
     tag: "1.11"
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
 resources:
   - name: repo-master
     type: git
@@ -31,6 +36,12 @@ resources:
       ignore_paths:
       - ci/*
       - README.md
+  - name: repo-pr
+    type: pull-request
+    check_every: 10m
+    source:
+      repository: categolj/blog-ui
+      access_token: ((github-access-token))
   - name: repo-version
     type: semver
     source:
@@ -120,14 +131,13 @@ jobs:
           set -e
           shopt -s dotglob
           source utils/scripts/generate-pr.sh
-          CURRENT_VERSION=`grep -A 1 spring-boot-starter-parent repo/pom.xml | grep version | sed 's|<[/]*version>||g' | sed 's/ //g'`
+          CURRENT_VERSION=`grep -A 1 spring-boot-starter-parent repo/pom.xml | grep version | sed 's|<[/]*version>||g' | sed 's/ //g' | tr -d "\t"`
           NEW_VERSION=`ls pom/*.pom | sed 's|pom/spring-boot-dependencies-||' | sed 's|.pom||'`
 
           echo "Current: $CURRENT_VERSION"
           echo "New    : $NEW_VERSION"
           cd repo
-          sed -i.swp "s/$CURRENT_VERSION/$NEW_VERSION/g" pom.xml
-          rm -f `find . -name '*.swp'`
+          sed -i "s/$CURRENT_VERSION/$NEW_VERSION/g" pom.xml
           git diff | cat
           cp -r ./* ../updated-repo
           cd ../updated-repo
@@ -171,6 +181,8 @@ jobs:
             pushd ../spring-cloud-circuitbreaker
             rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-circuitbreaker*
             rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-starter-circuitbreaker*
+            sed -i '/<module>spring-cloud-circuitbreaker-hystrix<\/module>/d' pom.xml
+            sed -i '/<module>spring-cloud-starter-circuitbreaker<\/module>/d' pom.xml
             ./mvnw install -DskipTests=true
             popd
             ./mvnw test
@@ -721,7 +733,47 @@ jobs:
       params:
         <<: *SLACK_SUCCESS
 
-
+### Pull Request
+- name: unit-test-pr
+  build_logs_to_retain: 5
+  plan:
+  - aggregate:
+    - get: repo
+      resource: repo-pr
+      trigger: true
+    - get: spring-cloud-circuitbreaker
+  - put: repo-pr
+    params:
+      path: repo
+      status: pending
+  - task: mvn-test
+    privileged: true
+    params:
+      <<: *JAVA_OPS
+    config:
+      <<: *MVN_TEST_CONFIG
+    on_failure:
+      put: slack-alert
+      params:
+        <<: *SLACK_FAILURE
+    on_success:
+      do:
+      - put: repo-pr
+        params:
+          path: repo
+          status: success
+      - put: slack-alert
+        params:
+          <<: *SLACK_SUCCESS
+    on_failure:
+      do:
+      - put: repo-pr
+        params:
+          path: repo
+          status: failure
+      - put: slack-alert
+        params:
+          <<: *SLACK_FAILURE
 params:
   git: &GIT_PARAMS
     GIT_EMAIL: ((git-email))
