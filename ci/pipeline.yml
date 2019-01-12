@@ -225,6 +225,8 @@ jobs:
           pushd ../spring-cloud-circuitbreaker
           rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-circuitbreaker*
           rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-starter-circuitbreaker*
+          sed -i '/<module>spring-cloud-circuitbreaker-hystrix<\/module>/d' pom.xml
+          sed -i '/<module>spring-cloud-starter-circuitbreaker<\/module>/d' pom.xml
           ./mvnw install -DskipTests=true
           popd
           ./mvnw package -DskipTests=true
