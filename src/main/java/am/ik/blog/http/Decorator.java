@@ -24,11 +24,11 @@ public class Decorator {
 		return publisher -> {
 			if (publisher instanceof Mono) {
 				return ((Mono<T>) publisher).transform(this.retryer.retry(name)) //
-						.transform(circuitBreaker::run);
+						.transform(x -> circuitBreaker.run(x, Mono::error));
 			}
 			else if (publisher instanceof Flux) {
 				return ((Flux<T>) publisher).transform(this.retryer.retry(name)) //
-						.transform(circuitBreaker::run);
+						.transform(x -> circuitBreaker.run(x, Flux::error));
 			}
 			throw new IllegalStateException(
 					"Publisher of type <" + publisher.getClass().getSimpleName()
