@@ -187,7 +187,7 @@ public class BlogUiApplicationTests {
 		HtmlPage top = this.webClient
 				.getPage("http://localhost:" + port + "/entries/100");
 		String xml = top.getBody().querySelector("article").asXml();
-		assertThat(normalize(xml)).isEqualTo("<article>\n" + //
+		assertThat(normalize(xml)).startsWith("<article>\n" + //
 				"  <h2>\n" + //
 				"    <a href=\"/entries/100\">\n" + //
 				"      Hello World!\n" + //
@@ -271,8 +271,7 @@ public class BlogUiApplicationTests {
 				"    </ul>\n" + //
 				"    <p>\n" + //
 				"    </p>\n" + //
-				"  </div>\n" + //
-				"</article>");
+				"  </div>\n");
 	}
 
 	@Test
@@ -679,7 +678,7 @@ public class BlogUiApplicationTests {
 		HtmlPage top = this.webClient
 				.getPage("http://localhost:" + port + "/entries/100");
 		String xml = top.getBody().querySelector("article").asXml();
-		assertThat(normalize(xml)).isEqualTo("<article>\n" + //
+		assertThat(normalize(xml)).startsWith("<article>\n" + //
 				"  <h2>\n" + //
 				"    <a href=\"/entries/100\">\n" + //
 				"      Hello World!\n" + //
@@ -763,8 +762,7 @@ public class BlogUiApplicationTests {
 				"    </ul>\n" + //
 				"    <p>\n" + //
 				"    </p>\n" + //
-				"  </div>\n" + //
-				"</article>");
+				"  </div>\n");
 	}
 
 	@Test
