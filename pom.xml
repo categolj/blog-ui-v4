@@ -41,7 +41,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-circuitbreaker-r4j</artifactId>
+            <artifactId>spring-cloud-circuitbreaker-resilience4j</artifactId>
             <version>0.0.1.BUILD-SNAPSHOT</version>
         </dependency>
         <dependency>
