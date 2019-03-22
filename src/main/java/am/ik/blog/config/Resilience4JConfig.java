@@ -1,15 +1,13 @@
 package am.ik.blog.config;
 
 import java.time.Duration;
-import java.util.function.Supplier;
 
 import am.ik.blog.BlogProperties;
 import am.ik.blog.http.Retryer;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.core.EventProcessor;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
-import io.vavr.collection.Seq;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,44 +30,18 @@ public class Resilience4JConfig {
 	public Customizer<ReactiveResilience4JCircuitBreakerFactory> resilience4jCustomizer(
 			BlogProperties props) {
 		return factory -> {
-			factory.configureCircuitBreakerRegistry(new CircuitBreakerRegistry() {
-				private CircuitBreakerRegistry delegate = CircuitBreakerRegistry
-						.ofDefaults();
-
-				@Override
-				public Seq<CircuitBreaker> getAllCircuitBreakers() {
-					return this.delegate.getAllCircuitBreakers();
-				}
-
-				@Override
-				public CircuitBreaker circuitBreaker(String name) {
-					return this.customize(this.delegate.circuitBreaker(name));
-				}
-
-				@Override
-				public CircuitBreaker circuitBreaker(String name,
-						CircuitBreakerConfig circuitBreakerConfig) {
-					return this.customize(
-							this.delegate.circuitBreaker(name, circuitBreakerConfig));
-				}
-
-				@Override
-				public CircuitBreaker circuitBreaker(String name,
-						Supplier<CircuitBreakerConfig> circuitBreakerConfigSupplier) {
-					return this.customize(this.delegate.circuitBreaker(name,
-							circuitBreakerConfigSupplier));
-				}
-
-				private CircuitBreaker customize(CircuitBreaker circuitBreaker) {
-					CircuitBreaker.EventPublisher eventPublisher = circuitBreaker
-							.getEventPublisher();
+			factory.addCircuitBreakerCustomizer(circuitBreaker -> {
+				CircuitBreaker.EventPublisher eventPublisher = circuitBreaker
+						.getEventPublisher();
+				if (!((EventProcessor) eventPublisher).hasConsumers()) {
 					eventPublisher.onError(event -> log.error("[onError] {}", event));
 					eventPublisher.onReset(event -> log.info("[onReset] {}", event));
 					eventPublisher.onStateTransition(
 							event -> log.info("[onStateTransition] {}", event));
-					return circuitBreaker;
 				}
-			});
+			}, "blog-ui.findById", "blog-ui.findAll", "blog-ui.streamAll",
+					"blog-ui.findByQuery", "blog-ui.findByCategories",
+					"blog-ui.findByTag", "blog-ui.findTags", "blog-ui.findCategories");
 			factory.configureDefault(
 					id -> new Resilience4JConfigBuilder(id)
 							.timeLimiterConfig(TimeLimiterConfig.custom() //
