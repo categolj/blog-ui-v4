@@ -31,14 +31,7 @@ public class Resilience4JConfig {
 			BlogProperties props) {
 		return factory -> {
 			factory.addCircuitBreakerCustomizer(circuitBreaker -> {
-				CircuitBreaker.EventPublisher eventPublisher = circuitBreaker
-						.getEventPublisher();
-				if (!((EventProcessor) eventPublisher).hasConsumers()) {
-					eventPublisher.onError(event -> log.error("[onError] {}", event));
-					eventPublisher.onReset(event -> log.info("[onReset] {}", event));
-					eventPublisher.onStateTransition(
-							event -> log.info("[onStateTransition] {}", event));
-				}
+				this.configureEventPublisher(circuitBreaker.getEventPublisher());
 			}, "blog-ui.findById", "blog-ui.findAll", "blog-ui.streamAll",
 					"blog-ui.findByQuery", "blog-ui.findByCategories",
 					"blog-ui.findByTag", "blog-ui.findTags", "blog-ui.findCategories");
@@ -56,5 +49,14 @@ public class Resilience4JConfig {
 									.build())
 							.build());
 		};
+	}
+
+	private void configureEventPublisher(CircuitBreaker.EventPublisher eventPublisher) {
+		if (!((EventProcessor) eventPublisher).hasConsumers()) {
+			eventPublisher.onError(event -> log.error("[onError] {}", event));
+			eventPublisher.onReset(event -> log.info("[onReset] {}", event));
+			eventPublisher.onStateTransition(
+					event -> log.info("[onStateTransition] {}", event));
+		}
 	}
 }
