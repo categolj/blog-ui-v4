@@ -3,10 +3,8 @@ package am.ik.blog;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
 
 @ConfigurationProperties(prefix = "blog")
-@Component
 public class BlogProperties {
 	private Service api;
 	private Service point;
