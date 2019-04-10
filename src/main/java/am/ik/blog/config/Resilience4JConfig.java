@@ -38,7 +38,7 @@ public class Resilience4JConfig {
 		ConcurrentMap<String, Boolean> registered = new ConcurrentHashMap<>();
 		return factory -> {
 			factory.addCircuitBreakerCustomizer(circuitBreaker -> {
-				//this.configureMetrics(registry, circuitBreaker, registered);
+				this.configureMetrics(registry, circuitBreaker, registered);
 				this.configureEventPublisher(circuitBreaker.getEventPublisher());
 			}, "blog-ui.findById", "blog-ui.findAll", "blog-ui.streamAll",
 					"blog-ui.findByQuery", "blog-ui.findByCategories",
