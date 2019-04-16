@@ -1,4 +1,19 @@
 ---
+params:
+  git: &GIT_PARAMS
+    GIT_EMAIL: ((git-email))
+    GIT_NAME: ((git-name))
+    SRC_BRANCH: develop
+  java_opts: &JAVA_OPS
+    _JAVA_OPTIONS: -Duser.timezone=Asia/Tokyo -Duser.language=ja -Duser.country=JP -Djava.security.egd=file:/dev/./urandom
+  slack_on_success_params: &SLACK_SUCCESS
+    channel: '#concourse'
+    text: |
+      <!here> :white_check_mark: *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* succeeded with build <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|$BUILD_NAME>!
+  slack_on_failure_params: &SLACK_FAILURE
+    channel: '#concourse'
+    text: |
+      <!here> :rotating_light: *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* failed with build <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|$BUILD_NAME>!
 resource_types:
 - name: slack-notification
   type: docker-image
@@ -220,7 +235,6 @@ jobs:
             tag: 11-slim
         inputs:
         - name: repo
-        - name: spring-cloud-circuitbreaker
         caches:
         - path: repo/m2
         run:
@@ -232,13 +246,6 @@ jobs:
             cd repo
             rm -rf ~/.m2
             ln -fs $(pwd)/m2 ~/.m2
-            pushd ../spring-cloud-circuitbreaker
-            rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-circuitbreaker*
-            rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-starter-circuitbreaker*
-            sed -i '/<module>spring-cloud-circuitbreaker-hystrix<\/module>/d' pom.xml
-            sed -i '/<module>spring-cloud-starter-circuitbreaker<\/module>/d' pom.xml
-            ./mvnw install -DskipTests=true
-            popd
             ./mvnw test
       on_failure:
         put: slack-alert
@@ -262,7 +269,6 @@ jobs:
           tag: 11-slim
       inputs:
       - name: repo
-      - name: spring-cloud-circuitbreaker
       outputs:
       - name: build
       caches:
@@ -276,13 +282,6 @@ jobs:
           cd repo
           rm -rf ~/.m2
           ln -fs $(pwd)/m2 ~/.m2
-          pushd ../spring-cloud-circuitbreaker
-          rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-circuitbreaker*
-          rm -rf ~/.m2/repository/org/springframework/cloud/spring-cloud-starter-circuitbreaker*
-          sed -i '/<module>spring-cloud-circuitbreaker-hystrix<\/module>/d' pom.xml
-          sed -i '/<module>spring-cloud-starter-circuitbreaker<\/module>/d' pom.xml
-          ./mvnw install -DskipTests=true
-          popd
           ./mvnw package -DskipTests=true
           cp target/*.jar ../build/
   - aggregate:
@@ -403,14 +402,36 @@ jobs:
       put: slack-alert
       params:
         <<: *SLACK_SUCCESS
-### Prod
+- name: load-test-develop
+  plan:
+    - get: repo-src
+      resource: repo-develop
+      passed:
+        - deploy-k8s-develop
+      trigger: true
+    - task: wrk
+      params:
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: skandyla/wrk
+        run:
+          path: sh
+          args:
+            - -c
+            - |
+              wrk -t16 -c200 -d30s https://blog.k8s.bosh.tokyo/entries/412 --latency
+
+  ### Prod
 - name: merge-develop-to-master
   plan:
   - aggregate:
     - get: repo-src
       resource: repo-develop
       passed:
-      - deploy-k8s-develop
+      - load-test-develop
     - get: repo-dest
       resource: repo-master
   - task: merge-develop-to-master
@@ -636,13 +657,34 @@ jobs:
       put: slack-alert
       params:
         <<: *SLACK_SUCCESS
+- name: load-test-master
+  plan:
+    - get: repo-src
+      resource: repo-master
+      passed:
+        - deploy-k8s-master
+      trigger: true
+    - task: wrk
+      params:
+      config:
+        platform: linux
+        image_resource:
+          type: registry-image
+          source:
+            repository: skandyla/wrk
+        run:
+          path: sh
+          args:
+            - -c
+            - |
+              wrk -t16 -c200 -d30s https://blog.ik.am/entries/412 --latency
 - name: bump-to-next-patch-version
   plan:
   - aggregate:
     - get: repo-src
       resource: repo-master
       passed:
-      - deploy-k8s-master
+      - load-test-master
       trigger: true
     - get: repo-dest
       resource: repo-develop
@@ -830,18 +872,3 @@ jobs:
       - put: slack-alert
         params:
           <<: *SLACK_FAILURE
-params:
-  git: &GIT_PARAMS
-    GIT_EMAIL: ((git-email))
-    GIT_NAME: ((git-name))
-    SRC_BRANCH: develop
-  java_opts: &JAVA_OPS
-    _JAVA_OPTIONS: -Duser.timezone=Asia/Tokyo -Duser.language=ja -Duser.country=JP -Djava.security.egd=file:/dev/./urandom
-  slack_on_success_params: &SLACK_SUCCESS
-    channel: '#concourse'
-    text: |
-      <!here> :white_check_mark: *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* succeeded with build <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|$BUILD_NAME>!
-  slack_on_failure_params: &SLACK_FAILURE
-    channel: '#concourse'
-    text: |
-      <!here> :rotating_light: *$BUILD_PIPELINE_NAME/$BUILD_JOB_NAME* failed with build <$ATC_EXTERNAL_URL/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME|$BUILD_NAME>!
