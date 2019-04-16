@@ -6,6 +6,11 @@
 <div data-layout-fragment="content">
     <article>
         <h2>[[${error}]]!</h2>
+        <p data-th-if="${entryId != null}">
+            You may find the requested blog post on GitHub.<br>
+            <a data-th-href="${'https://github.com/making/blog.ik.am/blob/master/content/' + #numbers.formatInteger(entryId, 5) + '.md'}">https://github.com/making/blog.ik.am/blob/master/content/[[${#numbers.formatInteger(entryId,
+                5)}]].md</a>
+        </p>
         <table data-th-include="error/debug"></table>
     </article>
 </div>
