@@ -2,6 +2,7 @@ package am.ik.blog.http;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import am.ik.blog.BlogClient;
 import am.ik.blog.BlogEntries;
@@ -40,6 +41,8 @@ public class BlogHttpClient implements BlogClient {
 	private final WebClient webClient;
 	private final Cache<EntryId, Entry> entryCache;
 	private final Decorator decorator;
+	private final ReactiveCircuitBreakerFactory circuitBreakerFactory;
+	private final Retryer retryer;
 	private static final Logger log = LoggerFactory.getLogger(BlogHttpClient.class);
 
 	public BlogHttpClient(WebClient.Builder builder, MeterRegistry meterRegistry,
@@ -52,8 +55,9 @@ public class BlogHttpClient implements BlogClient {
 				.removalListener(
 						(key, value, cause) -> log.info("Remove cache(entryId={})", key)) //
 				.build(), "entryCache");
-		this.decorator = new Decorator(new Retryer(tracer, props.getRetry()),
-				circuitBreakerFactory);
+		this.circuitBreakerFactory = circuitBreakerFactory;
+		this.retryer = new Retryer(tracer, props.getRetry());
+		this.decorator = new Decorator(this.retryer, circuitBreakerFactory);
 		this.webClient = builder.baseUrl(props.getApi().getUrl()) //
 				.build();
 	}
@@ -75,7 +79,16 @@ public class BlogHttpClient implements BlogClient {
 						.bodyToMono(Entry.class)) //
 				.andWriteWith((key, signal) -> Mono.justOrEmpty(signal.get())
 						.doOnNext(e -> this.entryCache.put(key, e)).then());
-		return entry.transform(this.decorator.decorate("blog-ui.findById"));
+
+		Function<Throwable, Mono<Entry>> fallback = error -> {
+			Entry cached = this.entryCache.getIfPresent(new EntryId(entryId));
+			return Mono.justOrEmpty(cached) //
+					.switchIfEmpty(Mono.error(error));
+		};
+
+		final String name = "blog-ui.findById";
+		return entry.transform(this.retryer.retry(name))
+				.transform(x -> this.circuitBreakerFactory.create(name).run(x, fallback));
 	}
 
 	public Mono<BlogEntries> findAll(Pageable pageable) {
