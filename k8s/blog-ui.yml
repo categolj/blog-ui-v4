@@ -80,9 +80,9 @@ spec:
           mountPath: /home/vcap/tmp
         resources:
           limits:
-            memory: "400Mi"
+            memory: "300Mi"
           requests:
-            memory: "400Mi"
+            memory: "300Mi"
         readinessProbe:
           httpGet:
             path: /actuator/health
