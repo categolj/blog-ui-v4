@@ -3,14 +3,20 @@ package am.ik.blog;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import am.ik.blog.entry.*;
+import am.ik.blog.model.Category;
+import am.ik.blog.model.Entry;
+import am.ik.blog.model.Tag;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.reactive.result.view.Rendering;
 import org.springframework.web.server.ServerWebExchange;
 
@@ -35,8 +41,7 @@ public class BlogUiController {
 				.filter(x -> x > 0) //
 				.flatMap(x -> entries.elementAt(0)) //
 				.map(e -> {
-					exchange.checkNotModified(
-							e.getUpdated().getDate().getValue().toInstant());
+					exchange.checkNotModified(e.getUpdated().getDate().toInstant());
 					return builder //
 							.header(CACHE_CONTROL,
 									"max-age=" + TimeUnit.HOURS.toSeconds(3)) //
@@ -71,7 +76,7 @@ public class BlogUiController {
 		Flux<Entry> entries = this.blogClient.streamByCategories(categories, pageable);
 		return Rendering.view("index") //
 				.modelAttribute("entries", entries) //
-				.modelAttribute("categories", new Categories(categories)) //
+				.modelAttribute("categories", categories) //
 				.build();
 	}
 
@@ -81,7 +86,7 @@ public class BlogUiController {
 			ServerWebExchange exchange) {
 		Mono<Entry> entry = this.blogClient.findById(entryId).cache();
 		return entry.map(e -> {
-			exchange.checkNotModified(e.getUpdated().getDate().getValue().toInstant());
+			exchange.checkNotModified(e.getUpdated().getDate().toInstant());
 			return Rendering.view("entry") //
 					.modelAttribute("entry", entry) //
 					.modelAttribute("checker", entry.map(ContentChecker::new)) //
@@ -97,7 +102,7 @@ public class BlogUiController {
 
 	@GetMapping("/categories")
 	public Rendering categories() {
-		Flux<Categories> categories = this.blogClient.streamCategories();
+		Flux<List<Category>> categories = this.blogClient.streamCategories();
 		return Rendering.view("categories") //
 				.modelAttribute("categories", categories) //
 				.build();
@@ -112,14 +117,14 @@ public class BlogUiController {
 	}
 
 	public static class ContentChecker {
-		private final EventTime created;
+		private Entry entry;
 		private Boolean isQuiteDanger;
 		private Boolean isDanger;
 		private Boolean isWarning;
 		private Boolean isCaution;
 
 		public ContentChecker(Entry entry) {
-			this.created = entry.getUpdated().getDate();
+			this.entry = entry;
 			this.isQuiteDanger = this.isQuiteDanger();
 			this.isDanger = this.isDanger();
 			this.isWarning = this.isWarning();
@@ -130,14 +135,14 @@ public class BlogUiController {
 			if (this.isQuiteDanger != null) {
 				return this.isQuiteDanger;
 			}
-			return this.created.isOverFiveYearsOld();
+			return this.entry.isOverFiveYearsOld();
 		}
 
 		public boolean isDanger() {
 			if (this.isDanger != null) {
 				return this.isDanger;
 			}
-			return !this.isQuiteDanger() && this.created.isOverThreeYearsOld();
+			return !this.isQuiteDanger() && this.entry.isOverThreeYearsOld();
 		}
 
 		public boolean isWarning() {
@@ -145,7 +150,7 @@ public class BlogUiController {
 				return this.isWarning;
 			}
 			return !this.isQuiteDanger() && !this.isDanger()
-					&& this.created.isOverOneYearOld();
+					&& this.entry.isOverOneYearOld();
 		}
 
 		public boolean isCaution() {
@@ -153,7 +158,7 @@ public class BlogUiController {
 				return this.isCaution;
 			}
 			return !this.isQuiteDanger() && !this.isDanger() && !this.isWarning()
-					&& this.created.isOverHalfYearOld();
+					&& this.entry.isOverHalfYearOld();
 		}
 
 	}

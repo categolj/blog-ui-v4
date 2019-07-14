@@ -2,10 +2,9 @@ package am.ik.blog;
 
 import java.util.List;
 
-import am.ik.blog.entry.Categories;
-import am.ik.blog.entry.Category;
-import am.ik.blog.entry.Entry;
-import am.ik.blog.entry.Tag;
+import am.ik.blog.model.Category;
+import am.ik.blog.model.Entry;
+import am.ik.blog.model.Tag;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -48,9 +47,9 @@ public interface BlogClient {
 		return this.findTags().flatMapMany(Flux::fromIterable);
 	}
 
-	Mono<List<Categories>> findCategories();
+	Mono<List<List<Category>>> findCategories();
 
-	default Flux<Categories> streamCategories() {
+	default Flux<List<Category>> streamCategories() {
 		return this.findCategories().flatMapMany(Flux::fromIterable);
 	}
 }

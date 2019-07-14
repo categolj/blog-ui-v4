@@ -2,11 +2,15 @@ package am.ik.blog;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 
-import am.ik.blog.entry.*;
+import am.ik.blog.model.AuthorBuilder;
+import am.ik.blog.model.Category;
+import am.ik.blog.model.Entry;
+import am.ik.blog.model.EntryBuilder;
+import am.ik.blog.model.FrontMatterBuilder;
+import am.ik.blog.model.Tag;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import reactor.core.publisher.Flux;
@@ -48,8 +52,9 @@ public class BlogControllerTest {
 				.exchange()//
 				.expectStatus().isEqualTo(OK) //
 				.expectHeader()
-				.valueEquals(LAST_MODIFIED, entry1.getUpdated().getDate().getValue()
-						.atZoneSameInstant(ZoneId.of("GMT")).format(RFC_1123_DATE_TIME)) //
+				.valueEquals(LAST_MODIFIED,
+						entry1.getUpdated().getDate().atZoneSameInstant(ZoneId.of("GMT"))
+								.format(RFC_1123_DATE_TIME)) //
 				.expectHeader().cacheControl(CacheControl.maxAge(3, HOURS));
 	}
 
@@ -60,7 +65,7 @@ public class BlogControllerTest {
 		given(blogClient.streamAll(any())) //
 				.willReturn(Flux.empty());
 
-		ZonedDateTime dateTime = entry1.getUpdated().getDate().getValue()
+		ZonedDateTime dateTime = entry1.getUpdated().getDate()
 				.atZoneSameInstant(ZoneId.of("GMT"));
 
 		this.webTestClient.get() //
@@ -79,7 +84,7 @@ public class BlogControllerTest {
 		given(blogClient.streamAll(any())) //
 				.willReturn(Flux.just(entry1, entry2));
 
-		ZonedDateTime dateTime = entry1.getUpdated().getDate().getValue()
+		ZonedDateTime dateTime = entry1.getUpdated().getDate()
 				.atZoneSameInstant(ZoneId.of("GMT"));
 		this.webTestClient.get() //
 				.uri("/") //
@@ -99,7 +104,7 @@ public class BlogControllerTest {
 		given(blogClient.streamAll(any())) //
 				.willReturn(Flux.just(entry1, entry2));
 
-		ZonedDateTime dateTime = entry1.getUpdated().getDate().getValue()
+		ZonedDateTime dateTime = entry1.getUpdated().getDate()
 				.atZoneSameInstant(ZoneId.of("GMT"));
 		this.webTestClient.get() //
 				.uri("/") //
@@ -122,8 +127,9 @@ public class BlogControllerTest {
 				.exchange()//
 				.expectStatus().isEqualTo(OK) //
 				.expectHeader()
-				.valueEquals(LAST_MODIFIED, entry.getUpdated().getDate().getValue()
-						.atZoneSameInstant(ZoneId.of("GMT")).format(RFC_1123_DATE_TIME)) //
+				.valueEquals(LAST_MODIFIED,
+						entry.getUpdated().getDate().atZoneSameInstant(ZoneId.of("GMT"))
+								.format(RFC_1123_DATE_TIME)) //
 				.expectHeader().cacheControl(CacheControl.maxAge(3, HOURS));
 	}
 
@@ -134,7 +140,7 @@ public class BlogControllerTest {
 		given(blogClient.findById(100L)) //
 				.willReturn(Mono.just(entry));
 
-		ZonedDateTime dateTime = entry.getUpdated().getDate().getValue()
+		ZonedDateTime dateTime = entry.getUpdated().getDate()
 				.atZoneSameInstant(ZoneId.of("GMT"));
 		this.webTestClient.get() //
 				.uri("/entries/100") //
@@ -153,7 +159,7 @@ public class BlogControllerTest {
 		given(blogClient.findById(100L)) //
 				.willReturn(Mono.just(entry));
 
-		ZonedDateTime dateTime = entry.getUpdated().getDate().getValue()
+		ZonedDateTime dateTime = entry.getUpdated().getDate()
 				.atZoneSameInstant(ZoneId.of("GMT"));
 		this.webTestClient.get() //
 				.uri("/entries/100") //
@@ -165,32 +171,44 @@ public class BlogControllerTest {
 	}
 
 	public static Entry entry99999() {
-		return Entry.builder().entryId(new EntryId(99999L))
-				.created(new Author(new Name("test"), EventTime.UNSET))
-				.updated(new Author(new Name("test"), EventTime.UNSET))
-				.frontMatter(new FrontMatter(new Title("test"),
-						new Categories(Arrays.asList(new Category("category"))),
-						new Tags(Arrays.asList(new Tag("tag"))),
-						new EventTime(OffsetDateTime.of(2017, 4, 1, 1, 0, 0, 0,
-								ZoneOffset.ofHours(9))),
-						new EventTime(OffsetDateTime.of(2017, 5, 1, 1, 0, 0, 0,
-								ZoneOffset.ofHours(9))),
-						new PremiumPoint(100)))
-				.content(new Content("test data!")).build().useFrontMatterDate();
+		return new EntryBuilder() //
+				.withEntryId(99999L) //
+				.withContent("This is a test data.") //
+				.withCreated(new AuthorBuilder() //
+						.withName("making") //
+						.withDate(OffsetDateTime.parse("2017-04-01T01:00:00+09:00")) //
+						.build()) //
+				.withUpdated(new AuthorBuilder() //
+						.withName("making") //
+						.withDate(OffsetDateTime.parse("2017-04-01T02:00:00+09:00")) //
+						.build()) //
+				.withFrontMatter(new FrontMatterBuilder() //
+						.withTitle("Hello World!!") //
+						.withTags(Arrays.asList(Tag.of("test1"), Tag.of("test2"),
+								Tag.of("test3"))) //
+						.withCategories(Arrays.asList(Category.of("x"), Category.of("y"),
+								Category.of("z"))) //
+						.build()) //
+				.build();
 	}
 
 	public static Entry entry99998() {
-		return Entry.builder().entryId(new EntryId(99998L))
-				.created(new Author(new Name("test"), EventTime.UNSET))
-				.updated(new Author(new Name("test"), EventTime.UNSET))
-				.frontMatter(new FrontMatter(new Title("sample"),
-						new Categories(Arrays.asList(new Category("category"))),
-						new Tags(Arrays.asList(new Tag("sample"))),
-						new EventTime(OffsetDateTime.of(2017, 3, 1, 1, 0, 0, 0,
-								ZoneOffset.ofHours(9))),
-						new EventTime(OffsetDateTime.of(2017, 2, 1, 1, 0, 0, 0,
-								ZoneOffset.ofHours(9))),
-						new PremiumPoint(100)))
-				.content(new Content("sample data!")).build().useFrontMatterDate();
+		return new EntryBuilder() //
+				.withEntryId(99998L) //
+				.withContent("sample data!") //
+				.withCreated(new AuthorBuilder() //
+						.withName("test") //
+						.withDate(OffsetDateTime.parse("2017-03-01T01:00:00+09:00")) //
+						.build()) //
+				.withUpdated(new AuthorBuilder() //
+						.withName("test") //
+						.withDate(OffsetDateTime.parse("2017-02-01T01:00:00+09:00")) //
+						.build()) //
+				.withFrontMatter(new FrontMatterBuilder() //
+						.withTitle("sample") //
+						.withTags(Arrays.asList(Tag.of("sample"))) //
+						.withCategories(Arrays.asList(Category.of("category"))) //
+						.build()) //
+				.build();
 	}
 }

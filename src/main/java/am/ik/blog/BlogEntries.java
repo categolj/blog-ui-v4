@@ -2,10 +2,9 @@ package am.ik.blog;
 
 import java.util.List;
 
+import am.ik.blog.model.Entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import am.ik.blog.entry.Entry;
 
 public class BlogEntries {
 	private final List<Entry> content;

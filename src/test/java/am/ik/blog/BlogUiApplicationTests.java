@@ -56,9 +56,9 @@ public class BlogUiApplicationTests {
 	@Test
 	public void entries() throws Exception {
 		this.server.enqueue(new MockResponse()
-				.setHeader(HttpHeaders.CONTENT_TYPE, "application/stream+x-jackson-smile")
+				.setHeader(HttpHeaders.CONTENT_TYPE, "application/stream+json")
 				.setBody(new Buffer().readFrom(
-						new ClassPathResource("data/entries.smile").getInputStream())));
+						new ClassPathResource("data/entries.json").getInputStream())));
 		HtmlPage top = this.webClient.getPage("http://localhost:" + port);
 		String xml = top.getBody().querySelector("ul.entries").asXml();
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"entries\">\n" + //
@@ -544,9 +544,9 @@ public class BlogUiApplicationTests {
 				.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN)
 				.setBody("API is unavailable."));
 		this.server.enqueue(new MockResponse()
-				.setHeader(HttpHeaders.CONTENT_TYPE, "application/stream+x-jackson-smile")
+				.setHeader(HttpHeaders.CONTENT_TYPE, "application/stream+json")
 				.setBody(new Buffer().readFrom(
-						new ClassPathResource("data/entries.smile").getInputStream())));
+						new ClassPathResource("data/entries.json").getInputStream())));
 		HtmlPage top = this.webClient.getPage("http://localhost:" + port);
 		String xml = top.getBody().querySelector("ul.entries").asXml();
 		assertThat(normalize(xml)).isEqualTo("<ul class=\"entries\">\n" + //

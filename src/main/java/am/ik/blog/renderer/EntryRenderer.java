@@ -1,6 +1,6 @@
 package am.ik.blog.renderer;
 
-import am.ik.blog.entry.Entry;
+import am.ik.blog.model.Entry;
 import am.ik.marked4j.Marked;
 
 import org.springframework.cloud.sleuth.annotation.NewSpan;
@@ -16,6 +16,6 @@ public class EntryRenderer {
 
 	@NewSpan
 	public String render(Entry entry) {
-		return this.marked.marked(entry.content().getValue());
+		return this.marked.marked(entry.getContent());
 	}
 }

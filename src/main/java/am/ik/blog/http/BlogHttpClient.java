@@ -7,11 +7,9 @@ import java.util.function.Function;
 import am.ik.blog.BlogClient;
 import am.ik.blog.BlogEntries;
 import am.ik.blog.BlogProperties;
-import am.ik.blog.entry.Categories;
-import am.ik.blog.entry.Category;
-import am.ik.blog.entry.Entry;
-import am.ik.blog.entry.EntryId;
-import am.ik.blog.entry.Tag;
+import am.ik.blog.model.Category;
+import am.ik.blog.model.Entry;
+import am.ik.blog.model.Tag;
 import brave.Tracer;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -31,7 +29,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.springframework.http.HttpHeaders.ACCEPT;
 import static org.springframework.http.HttpHeaders.IF_MODIFIED_SINCE;
 import static org.springframework.http.HttpStatus.NOT_MODIFIED;
@@ -39,7 +36,7 @@ import static org.springframework.http.HttpStatus.NOT_MODIFIED;
 @Component
 public class BlogHttpClient implements BlogClient {
 	private final WebClient webClient;
-	private final Cache<EntryId, Entry> entryCache;
+	private final Cache<Long, Entry> entryCache;
 	private final Decorator decorator;
 	private final ReactiveCircuitBreakerFactory circuitBreakerFactory;
 	private final Retryer retryer;
@@ -66,22 +63,22 @@ public class BlogHttpClient implements BlogClient {
 		Mono<Entry> entry = CacheMono
 				.lookup(key -> Mono.justOrEmpty(this.entryCache.get(key, x -> null)) //
 						.flatMap(e -> this.webClient.head() //
-								.uri("api/entries/{entryId}", entryId) //
+								.uri("entries/{entryId}", entryId) //
 								.header(IF_MODIFIED_SINCE,
-										e.getUpdated().getDate().rfc1123()) //
+										e.getUpdated().rfc1123DateTime()) //
 								.exchange() //
 								.filter(r -> r.statusCode() == NOT_MODIFIED) //
 								.map(x -> e))
-						.map(Signal::next), new EntryId(entryId)) //
+						.map(Signal::next), entryId) //
 				.onCacheMissResume(() -> this.webClient.get() //
-						.uri("api/entries/{entryId}?excludeContent=false", entryId) //
+						.uri("entries/{entryId}?excludeContent=false", entryId) //
 						.retrieve() //
 						.bodyToMono(Entry.class)) //
 				.andWriteWith((key, signal) -> Mono.justOrEmpty(signal.get())
 						.doOnNext(e -> this.entryCache.put(key, e)).then());
 
 		Function<Throwable, Mono<Entry>> fallback = error -> {
-			Entry cached = this.entryCache.getIfPresent(new EntryId(entryId));
+			Entry cached = this.entryCache.getIfPresent(entryId);
 			return Mono.justOrEmpty(cached) //
 					.switchIfEmpty(Mono.error(error));
 		};
@@ -93,7 +90,7 @@ public class BlogHttpClient implements BlogClient {
 
 	public Mono<BlogEntries> findAll(Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
-				.uri("api/entries?page={page}&size={size}&excludeContent=true",
+				.uri("entries?page={page}&size={size}&excludeContent=true",
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
@@ -102,17 +99,17 @@ public class BlogHttpClient implements BlogClient {
 
 	public Flux<Entry> streamAll(Pageable pageable) {
 		Flux<Entry> entries = this.webClient.get()
-				.uri("api/entries?page={page}&size={size}&excludeContent=true",
+				.uri("entries?page={page}&size={size}&excludeContent=true",
 						pageable.getPageNumber(), pageable.getPageSize()) //
-				.header(ACCEPT, "application/stream+x-jackson-smile").retrieve()
+				.header(ACCEPT, "application/stream+json").retrieve()
 				.bodyToFlux(Entry.class);
 		return entries.transform(this.decorator.decorate("blog-ui.streamAll"));
 	}
 
 	public Mono<BlogEntries> findByQuery(String query, Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
-				.uri("api/entries?q={q}&page={page}&size={size}&excludeContent=true",
-						query, pageable.getPageNumber(), pageable.getPageSize()) //
+				.uri("entries?q={q}&page={page}&size={size}&excludeContent=true", query,
+						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
 		return entries.transform(this.decorator.decorate("blog-ui.findByQuery"));
@@ -121,8 +118,8 @@ public class BlogHttpClient implements BlogClient {
 	public Mono<BlogEntries> findByCategories(List<Category> categories,
 			Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
-				.uri("api/categories/{categories}/entries?page={page}&size={size}&excludeContent=true",
-						categories.stream().map(Category::toString).collect(joining(",")),
+				.uri("categories/{categories}/entries?page={page}&size={size}&excludeContent=true",
+						categories.stream().map(Category::getName).collect(joining(",")),
 						pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
@@ -131,8 +128,8 @@ public class BlogHttpClient implements BlogClient {
 
 	public Mono<BlogEntries> findByTag(Tag tag, Pageable pageable) {
 		Mono<BlogEntries> entries = this.webClient.get() //
-				.uri("api/tags/{tag}/entries?page={page}&size={size}&excludeContent=true",
-						tag, pageable.getPageNumber(), pageable.getPageSize()) //
+				.uri("tags/{tag}/entries?page={page}&size={size}&excludeContent=true",
+						tag.getName(), pageable.getPageNumber(), pageable.getPageSize()) //
 				.retrieve() //
 				.bodyToMono(BlogEntries.class);
 		return entries.transform(this.decorator.decorate("blog-ui.findByTag"));
@@ -140,27 +137,21 @@ public class BlogHttpClient implements BlogClient {
 
 	public Mono<List<Tag>> findTags() {
 		Mono<List<Tag>> tags = this.webClient.get() //
-				.uri("api/tags") //
+				.uri("tags") //
 				.retrieve() //
-				.bodyToMono(new ParameterizedTypeReference<List<String>>() {
-				}) //
-				.map(s -> s.stream() //
-						.map(Tag::new) //
-						.collect(toList()));
+				.bodyToMono(new ParameterizedTypeReference<List<Tag>>() {
+
+				});
 		return tags.transform(this.decorator.decorate("blog-ui.findTags"));
 	}
 
-	public Mono<List<Categories>> findCategories() {
-		Mono<List<Categories>> categories = this.webClient.get() //
-				.uri("api/categories") //
+	public Mono<List<List<Category>>> findCategories() {
+		Mono<List<List<Category>>> categories = this.webClient.get() //
+				.uri("categories") //
 				.retrieve() //
-				.bodyToMono(new ParameterizedTypeReference<List<List<String>>>() {
-				}) //
-				.map(s -> s.stream() //
-						.map(c -> new Categories(c.stream() //
-								.map(Category::new) //
-								.collect(toList()))) //
-						.collect(toList()));
+				.bodyToMono(new ParameterizedTypeReference<List<List<Category>>>() {
+
+				});
 		return categories.transform(this.decorator.decorate("blog-ui.findCategories"));
 	}
 
