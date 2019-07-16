@@ -38,12 +38,14 @@ resource_types:
 resources:
   - name: repo-master
     type: git
+    icon: git
     source:
       uri: git@github.com:categolj/blog-ui.git
       branch: master
       private_key: ((github-private-key))
   - name: repo-develop
     type: git
+    icon: git
     source:
       uri: git@github.com:categolj/blog-ui.git
       branch: develop
@@ -53,12 +55,14 @@ resources:
       - README.md
   - name: repo-pr
     type: pull-request
+    icon: github-circle
     check_every: 10m
     source:
       repository: categolj/blog-ui
       access_token: ((github-access-token))
   - name: repo-version
     type: semver
+    icon: numeric
     source:
       uri: git@github.com:categolj/blog-ui-version.git
       branch: master
@@ -68,20 +72,24 @@ resources:
       initial_version: 4.0.0
   - name: docker
     type: docker-image
+    icon: docker
     source:
       repository: asia.gcr.io/fe-tmaki/blog-ui
       username: _json_key
       password: ((gcr-key))
   - name: k8s-master
     type: kubernetes
+    icon: hexagon-slice-6
     source:
       kubeconfig: ((kubeconfig-master))
   - name: k8s-develop
     type: kubernetes
+    icon: hexagon-slice-6
     source:
       kubeconfig: ((kubeconfig-develop))
   - name: nexus
     type: maven
+    icon: language-java
     source:
       url: ((nexus-release-url))
       snapshot_url: ((nexus-snapshot-url))
@@ -90,27 +98,26 @@ resources:
       password: ((nexus-password))
       skip_cert_check: true
   - name: slack-alert
+    icon: slack
     type: slack-notification
     source:
       url: ((slack-webhook-url))
-  - name: spring-cloud-circuitbreaker
-    type: git
-    source:
-      uri: https://github.com/spring-cloud-incubator/spring-cloud-circuitbreaker.git
-      branch: master
   - name: utils
     type: git
+    icon: git
     source:
       uri: https://github.com/making/ci-utils.git
       branch: master
   - name: spring-boot
     type: maven
+    icon: language-java
     check_every: 30m
     source:
       url: https://repo1.maven.org/maven2
       artifact: org.springframework.boot:spring-boot-dependencies:pom
   - name: spring-cloud
     type: maven
+    icon: language-java
     check_every: 30m
     source:
       url: https://repo1.maven.org/maven2
@@ -220,8 +227,6 @@ jobs:
       - get: repo
         resource: repo-develop
         trigger: true
-      - get: spring-cloud-circuitbreaker
-        trigger: true
     - task: mvn-test
       privileged: true
       params:
@@ -258,7 +263,6 @@ jobs:
     passed:
     - unit-test-develop
     trigger: true
-  - get: spring-cloud-circuitbreaker
   - task: mvn-package
     config: &NEXUS_PACKAGE_CONFIG
       platform: linux
@@ -387,6 +391,7 @@ jobs:
           sed "s/INFO_DOCKER_DIGEST/${DIGEST}/g" | \
           sed "s/namespace: blog/namespace: blog-dev/g" | \
           sed "s/ik.am/k8s.bosh.tokyo/g" | \
+          sed "s/cloud.k8s.bosh.tokyo/cloud.ik.am/g" | \
           sed "s/value: kubernetes/value: kubernetes,debug/g" | \
           sed "s/3008/3058/g" > updated/blog-ui.yml
   - put: k8s-develop
@@ -422,7 +427,7 @@ jobs:
           args:
             - -c
             - |
-              wrk -t16 -c200 -d30s https://blog.k8s.bosh.tokyo/entries/412 --latency
+              wrk -t16 -c200 -d30s --timeout 10s https://blog.k8s.bosh.tokyo/entries/412 --latency
 
   ### Prod
 - name: merge-develop-to-master
@@ -482,7 +487,6 @@ jobs:
       trigger: true
       passed:
       - merge-develop-to-master
-    - get: spring-cloud-circuitbreaker
   - task: mvn-test
     privileged: true
     params:
@@ -561,7 +565,6 @@ jobs:
     - get: repo-version
       passed:
       - tag-master
-    - get: spring-cloud-circuitbreaker
   - task: mvn-package
     config:
       <<: *NEXUS_PACKAGE_CONFIG
@@ -677,7 +680,7 @@ jobs:
           args:
             - -c
             - |
-              wrk -t16 -c200 -d30s https://blog.ik.am/entries/412 --latency
+              wrk -t16 -c200 -d30s --timeout 10s https://blog.ik.am/entries/412 --latency
 - name: bump-to-next-patch-version
   plan:
   - aggregate:
@@ -839,7 +842,6 @@ jobs:
     - get: repo
       resource: repo-pr
       trigger: true
-    - get: spring-cloud-circuitbreaker
   - put: repo-pr
     params:
       path: repo
